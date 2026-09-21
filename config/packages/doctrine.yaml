@@ -10,6 +10,12 @@ doctrine:
     orm:
         validate_xml_mapping: true
         naming_strategy: doctrine.orm.naming_strategy.underscore
+        filters:
+            # Scopes every query on tenant entities to the active store. Enabled from the start,
+            # so anything without a store sees no tenant rows (fail closed, decision #30).
+            tenant:
+                class: App\Infrastructure\Tenancy\Doctrine\TenantFilter
+                enabled: true
         auto_mapping: true
         mappings:
             App:
@@ -24,6 +30,14 @@ when@test:
         dbal:
             # "TEST_TOKEN" is typically set by ParaTest
             dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+        orm:
+            mappings:
+                # Test-only entities (e.g. TenantNote for the store isolation tests).
+                TestFixtures:
+                    type: attribute
+                    is_bundle: false
+                    dir: '%kernel.project_dir%/tests/Fixtures/Entity'
+                    prefix: 'App\Tests\Fixtures\Entity'
 
 when@prod:
     doctrine:

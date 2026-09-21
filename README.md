@@ -7,6 +7,7 @@ MySQL database, a pure-PHP domain core, Symfony Workflow order lifecycle, and tw
 - Architecture: [`architecture.md`](architecture.md)
 - Diagrams (open in a browser): [`docs/diagrams/`](docs/diagrams/) (database schema, architecture, pages & UI standards)
 - Plan: [`docs/PLAN.md`](docs/PLAN.md) · Decisions: [`docs/DECISIONS.md`](docs/DECISIONS.md)
+- **Manual testing (what to open in the browser):** [`docs/MANUAL-TESTING.md`](docs/MANUAL-TESTING.md)
 
 ## Local setup
 
@@ -21,8 +22,23 @@ herd secure shop                   # HTTPS (asks for your macOS password)
 npm run dev                        # Vite dev server on port 5174
 ```
 
-Hosts: `https://myoils-auto.shop.test` (storefront; stores are resolved by host from Phase 1) and
-`https://admin.shop.test` (admin).
+Create the database and load the demo data:
+
+```bash
+php bin/console doctrine:migrations:migrate -n
+php bin/console foundry:load-fixtures main -n
+```
+
+| Host | What |
+|---|---|
+| `https://myoils-auto.shop.test` | MyOil's Auto (also `myoils-industrie` and `myoils-agri`) |
+| `https://admin.shop.test` | Admin (API only for now) |
+
+Demo staff (password `password`): `admin@myoils.test` (super-admin) and `manager@myoils.test`
+(manager of Auto and Industrie).
+
+Useful endpoints: `GET /api/store` on a shop host returns the store's name and branding.
+Every console command accepts `--store=<code>`, e.g. `php bin/console app:tenant:status --store=myoils-auto`.
 
 ## Quality checks
 

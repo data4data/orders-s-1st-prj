@@ -15,6 +15,9 @@ jobs:
   php:
     name: PHP (lint, static analysis, architecture, tests)
     runs-on: ubuntu-latest
+    env:
+      # The tests create their own database (myoils_test); the throwaway CI container's root user may do that.
+      DATABASE_URL: mysql://root:root@127.0.0.1:3307/myoils?serverVersion=8.4.0&charset=utf8mb4
     services:
       database:
         image: mysql:8.4
