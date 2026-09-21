@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyOil's — Architecture</title>
+<link rel="stylesheet" href="_viewer.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-head">
+    <div>
+      <h1>Architecture</h1>
+      <p>A multi-store lubricant shop on Symfony 7.4. One shared database, a pure-PHP domain core, Symfony Workflow
+        state machines, pluggable payment gateways, and two separate frontend stacks: Bootstrap + jQuery, and Vue 3 +
+        PrimeVue + Tailwind. See <code>architecture.md</code> in the repository root for the written summary.</p>
+    </div>
+    <nav><a href="db-schema.html">← Database schema</a> &nbsp;·&nbsp; <a href="pages.html">Pages &amp; UI standards →</a></nav>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button data-target="layers" role="tab">Layers</button>
+    <button data-target="tenancy" role="tab">Tenant request</button>
+    <button data-target="order-wf" role="tab">Order workflow</button>
+    <button data-target="payment-wf" role="tab">Payment workflow</button>
+    <button data-target="checkout" role="tab">Checkout flow</button>
+    <button data-target="extension" role="tab">Extension points</button>
+    <button data-target="frontend" role="tab">Frontend isolation</button>
+    <button data-target="git" role="tab">Git flow</button>
+  </div>
+
+  <!-- ============================== LAYERS ============================== -->
+  <section class="panel" id="panel-layers" hidden>
+    <div class="panel-head">
+      <h2>Layers and allowed dependencies</h2>
+      <p>Arrows point in the direction of allowed dependencies. <strong>Domain depends on nothing</strong>: it contains no
+        <code>Symfony\</code> or <code>Doctrine\</code> imports, and deptrac fails CI if one appears.</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Layers</span><span class="spacer"></span>
+          <button data-zoom="out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+flowchart TB
+  subgraph CLIENTS["Browsers"]
+    direction TB
+    SF["Storefront<br/>myoils-auto.shop.test<br/><small>Twig + Bootstrap pages · Vue islands</small>"]
+    AD["Admin SPA<br/>admin.shop.test<br/><small>Vue 3 + PrimeVue</small>"]
+  end
+
+  subgraph UI["UI — src/UI"]
+    direction TB
+    WEB["Http/Web<br/><small>Twig controllers</small>"]
+    API["Http/Api<br/><small>JSON controllers</small>"]
+    ADM["Http/Admin<br/><small>JSON + SPA shell</small>"]
+    HOOK["Http/Webhook<br/><small>gateway callbacks</small>"]
+    CLI["Cli<br/><small>console commands</small>"]
+  end
+
+  subgraph APP["Application — src/Application"]
+    direction TB
+    BUS[["Messenger<br/>command.bus · query.bus"]]
+    HND["Handlers<br/><small>AddToCart · ApplyCoupon · PlaceOrder<br/>ApplyOrderTransition · HandlePaymentWebhook</small>"]
+    PORT(["Ports<br/><small>OrderRepositoryInterface<br/>PaymentGatewayInterface<br/>TenantContextInterface · Clock</small>"])
+  end
+
+  subgraph DOM["Domain — src/Domain · pure PHP"]
+    direction TB
+    MON["Money<br/><small>value objects</small>"]
+    PRI["Pricing<br/><small>LinePricer · OrderTotals</small>"]
+    TAX["Tax<br/><small>TaxRateResolverInterface</small>"]
+    DIS["Discount<br/><small>DiscountRuleInterface</small>"]
+    INV["Inventory<br/><small>StockPolicy</small>"]
+    SHP["Shipping<br/><small>ShippingCalculatorInterface</small>"]
+  end
+
+  subgraph INF["Infrastructure — src/Infrastructure"]
+    direction TB
+    REP["Persistence/Repository<br/><small>implements ports</small>"]
+    TEN["Tenancy<br/><small>HostResolver · TenantFilter<br/>TenantAssignListener</small>"]
+    WF["Workflow<br/><small>guard + audit listeners</small>"]
+    PAY["Payment<br/><small>GatewayRegistry · FakeGateway</small>"]
+    FIX["Fixtures<br/><small>MyOil's demo stores</small>"]
+  end
+
+  subgraph ENTL["Entity — src/Entity"]
+    direction TB
+    ENT["Doctrine entities<br/><small>Symfony standard location · attributes</small>"]
+  end
+
+  DB[("MySQL 8<br/>single shared database")]
+
+  CLIENTS ==> UI
+  UI ==>|"dispatch command DTOs"| APP
+  APP ==>|"call pure rules"| DOM
+  APP ==>|"loads &amp; changes"| ENTL
+  INF ==>|"persists"| ENTL
+  ENTL ==>|"value objects"| DOM
+  INF ==>|"implements ports"| APP
+  INF ==>|"value objects"| DOM
+  INF ==> DB
+
+  classDef dom fill:#e3f5e9,stroke:#2f855a,color:#12351f
+  classDef app fill:#e3ebfd,stroke:#2f62d0,color:#14224a
+  classDef inf fill:#f1ecfb,stroke:#6b46c1,color:#2a1a52
+  classDef ui fill:#fdf1dc,stroke:#b7791f,color:#3d2a07
+  class MON,PRI,TAX,DIS,INV,SHP dom
+  class BUS,HND,PORT app
+  class REP,TEN,WF,PAY,FIX inf
+  class ENT ent
+  classDef ent fill:#fdeee3,stroke:#c05621,color:#4a2208
+  class WEB,API,ADM,HOOK,CLI ui
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>What each layer may use</h3>
+        <ul>
+          <li><strong>Domain</strong>: plain PHP only. It holds calculators, policies and value objects, is fully unit-testable, and has no I/O.</li>
+          <li><strong>Entity</strong>: Doctrine entities in <code>src/Entity</code>, the Symfony standard. They may use Domain value objects only.</li>
+          <li><strong>Application</strong>: Domain, entities and ports. Handlers are thin: load, call the domain, apply the transition, persist.</li>
+          <li><strong>Infrastructure</strong>: implements ports and holds Doctrine, Workflow, gateways and tenancy.</li>
+          <li><strong>UI</strong>: turns HTTP or CLI input into a command DTO and dispatches it on the bus. It contains no business rules.</li>
+        </ul>
+        <h3>Why entities have their own layer</h3>
+        <ul>
+          <li>We chose Doctrine attribute entities for pragmatism. Only the rules are pure.</li>
+          <li><code>src/Entity</code> is where Symfony, its docs and <code>make:entity</code> expect them. deptrac treats it as a separate layer that Application and Infrastructure may use, and that may use only Domain.</li>
+          <li>Entities turn their integer columns into <code>Money</code> and other Domain value objects in their getters.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== TENANCY ============================== -->
+  <section class="panel" id="panel-tenancy" hidden>
+    <div class="panel-head">
+      <h2>How a request is scoped to one store</h2>
+      <p>The store is resolved from the host <strong>before the firewall runs</strong>, so even loading the logged-in
+        customer is already scoped. With no resolved store, tenant queries return nothing (fail closed).</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Tenant request lifecycle</span><span class="spacer"></span>
+          <button data-zoom="out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+sequenceDiagram
+  autonumber
+  actor B as Browser
+  participant K as HttpKernel
+  participant R as TenantRequestListener<br/>(kernel.request, prio 40)
+  participant H as HostStoreResolver
+  participant C as TenantContext
+  participant F as Doctrine TenantFilter
+  participant S as Firewall
+  participant X as Controller → Bus → Handler
+  participant DB as MySQL
+
+  B->>K: GET https://myoils-auto.shop.test/catalog
+  K->>R: onKernelRequest
+  alt storefront host
+    R->>H: resolve("myoils-auto.shop.test")
+    H->>DB: SELECT store FROM store_domain WHERE host = ?
+    DB-->>H: store #1 (MyOil's Auto)
+  else admin.shop.test
+    R->>H: resolveFromSession(selected_store)
+    Note over R,H: super-admin may choose "All stores" → filter stays OFF, writes blocked
+  end
+  alt host unknown
+    R-->>B: 404 Not Found (fail closed)
+  end
+  R->>C: setStore(store #1)
+  R->>F: enable("tenant") · setParameter(storeId = 1)
+  K->>S: authenticate customer
+  S->>DB: SELECT … FROM customer WHERE email = ? AND store_id = 1
+  K->>X: handle request
+  X->>DB: SELECT … FROM product p WHERE … AND p.store_id = 1
+  Note over X,DB: store_id condition added automatically for every TenantAware entity
+  X->>DB: INSERT order (store_id = 1 set by TenantAssignListener on prePersist)
+  X-->>B: 200 OK
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>Building blocks</h3>
+        <ul>
+          <li><code>TenantAwareInterface</code>: a marker on every entity that has <code>store_id</code>.</li>
+          <li><code>TenantFilter extends SQLFilter</code> adds <code>alias.store_id = :storeId</code> to queries on those entities. Without a parameter it returns <code>1 = 0</code>.</li>
+          <li><code>TenantAssignListener</code> (Doctrine <code>prePersist</code>) sets the store and throws if there is none.</li>
+          <li><code>TenantContext::runAsPlatform(fn)</code> disables the filter explicitly for fixtures, CLI and the super-admin.</li>
+        </ul>
+        <h3>CLI &amp; async</h3>
+        <ul>
+          <li>Console commands take a <code>--store=myoils-auto</code> option.</li>
+          <li>Messenger messages carry a <code>StoreStamp</code>. A middleware restores the tenant before the handler runs.</li>
+        </ul>
+        <div class="callout">A test suite (<code>TenantIsolationTest</code>) seeds two stores and checks that each repository cannot see the other store's rows.</div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== ORDER WORKFLOW ============================== -->
+  <section class="panel" id="panel-order-wf" hidden>
+    <div class="panel-head">
+      <h2>Order state machine</h2>
+      <p>Symfony Workflow, <code>type: state_machine</code>, <code>marking_store: method</code> on <code>Order::$state</code>.
+        Labels show <code>transition [guard]</code>. A transition that is not drawn is impossible, and a failing guard blocks one that is drawn.</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Order workflow</span><span class="spacer"></span>
+          <button data-zoom="out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+stateDiagram-v2
+  [*] --> draft : add first item
+  draft --> payment_pending : checkout [has items · stock available · address · shipping allowed]
+  payment_pending --> paid : pay [captured payment ≥ total_gross]
+  paid --> processing : start_processing [staff]
+  processing --> shipped : ship [staff · payment captured]
+  shipped --> delivered : deliver [staff or carrier webhook]
+  draft --> cancelled : cancel
+  payment_pending --> cancelled : cancel [customer, staff or expiry]
+  paid --> cancelled : cancel [staff · full refund issued first]
+  processing --> cancelled : cancel [staff · full refund issued first]
+  shipped --> refunded : refund [payment refunded]
+  delivered --> refunded : refund [payment refunded]
+  delivered --> [*]
+  cancelled --> [*]
+  refunded --> [*]
+
+  classDef open fill:#eceff3,stroke:#6b7280,color:#1c2330
+  classDef wait fill:#fdf1dc,stroke:#b7791f,color:#3d2a07
+  classDef good fill:#e3f5e9,stroke:#2f855a,color:#12351f
+  classDef flow fill:#e3ebfd,stroke:#2f62d0,color:#14224a
+  classDef bad fill:#fde2e2,stroke:#c53030,color:#4a1111
+  class draft open
+  class payment_pending wait
+  class paid,delivered good
+  class processing,shipped flow
+  class cancelled,refunded bad
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>Where the rules live</h3>
+        <ul>
+          <li><strong>Guards</strong> are <code>workflow.order.guard.&lt;transition&gt;</code> listeners. They only <em>ask</em> pure Domain policies, such as <code>StockPolicy::canReserve()</code>, and call <code>$event->setBlocked(true, reason)</code>.</li>
+          <li><strong>State changes that have effects</strong> (reserving or deducting stock, snapshotting prices, the order number) are done by the <em>handler</em> in the same DB transaction as <code>$workflow->apply()</code>.</li>
+          <li><strong>Side effects</strong> such as the audit row (<code>order_status_history</code>) and emails are handled in <code>completed</code> listeners. Emails go through async Messenger.</li>
+        </ul>
+        <h3>Stock effects</h3>
+        <ul>
+          <li><code>checkout</code>: reserve</li>
+          <li><code>pay</code>: deduct (reserved → sold)</li>
+          <li><code>cancel</code> before pay: release</li>
+          <li><code>cancel</code> after pay: restock</li>
+          <li><code>refund</code> after shipping: restock only when goods come back (returns are a later phase)</li>
+        </ul>
+        <div class="callout"><strong>Rule:</strong> before the order ships, the shop <strong>cancels</strong> it (the handler issues the full refund through the gateway first). After it ships, money goes back through <strong>refund</strong>, mainly after delivery.</div>
+      </aside>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Place</th><th>Customer sees</th><th>Admin badge</th><th>Expected payment state</th><th>Stock</th><th>Typical trigger</th></tr></thead>
+        <tbody>
+          <tr><td><code>draft</code></td><td>Cart</td><td><span class="badge b-gray">Draft</span></td><td>none</td><td>not held</td><td>customer adds items</td></tr>
+          <tr><td><code>payment_pending</code></td><td>Awaiting payment</td><td><span class="badge b-amber">Awaiting payment</span></td><td><code>pending</code> / <code>authorized</code></td><td>reserved</td><td>checkout wizard submit</td></tr>
+          <tr><td><code>paid</code></td><td>Payment received</td><td><span class="badge b-green">Paid</span></td><td><code>captured</code></td><td>deducted</td><td>payment webhook</td></tr>
+          <tr><td><code>processing</code></td><td>Being prepared</td><td><span class="badge b-blue">Processing</span></td><td><code>captured</code></td><td>deducted</td><td>staff action</td></tr>
+          <tr><td><code>shipped</code></td><td>Shipped</td><td><span class="badge b-indigo">Shipped</span></td><td><code>captured</code></td><td>deducted</td><td>staff action (tracking no.)</td></tr>
+          <tr><td><code>delivered</code></td><td>Delivered</td><td><span class="badge b-teal">Delivered</span></td><td><code>captured</code></td><td>deducted</td><td>staff / carrier</td></tr>
+          <tr><td><code>cancelled</code></td><td>Cancelled</td><td><span class="badge b-red">Cancelled</span></td><td><code>cancelled</code> / <code>failed</code> (before pay) or <code>refunded</code> (after pay)</td><td>released (before pay) / restocked (after pay)</td><td>customer, staff, expiry job</td></tr>
+          <tr><td><code>refunded</code></td><td>Refunded</td><td><span class="badge b-purple">Refunded</span></td><td><code>refunded</code></td><td>restocked only when goods are returned</td><td>staff action after shipping</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================== PAYMENT WORKFLOW ============================== -->
+  <section class="panel" id="panel-payment-wf" hidden>
+    <div class="panel-head">
+      <h2>Payment state machine</h2>
+      <p>A separate workflow on <code>Payment::$state</code>. Payment events drive order transitions. The order never inspects gateway specifics.</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Payment workflow</span><span class="spacer"></span>
+          <button data-zoom="out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+stateDiagram-v2
+  direction LR
+  [*] --> pending : createCheckoutSession()
+  pending --> authorized : authorize
+  pending --> captured : capture
+  authorized --> captured : capture
+  pending --> failed : fail
+  authorized --> failed : fail
+  pending --> cancelled : cancel [expired or abandoned]
+  authorized --> cancelled : cancel [void]
+  captured --> refunded : refund [sum of refunds = amount]
+  captured --> [*]
+  failed --> [*]
+  cancelled --> [*]
+  refunded --> [*]
+
+  classDef wait fill:#fdf1dc,stroke:#b7791f,color:#3d2a07
+  classDef good fill:#e3f5e9,stroke:#2f855a,color:#12351f
+  classDef bad fill:#fde2e2,stroke:#c53030,color:#4a1111
+  class pending,authorized wait
+  class captured good
+  class failed,cancelled,refunded bad
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>Linking payment → order</h3>
+        <ul>
+          <li><code>payment.completed.capture</code> → dispatch <code>ApplyOrderTransition(pay)</code></li>
+          <li><code>payment.completed.refund</code> → the order completes <code>cancel</code> (not yet shipped) or <code>refund</code> (shipped or delivered)</li>
+          <li><code>payment.completed.fail</code> → the order stays <code>payment_pending</code>, and the customer can retry with a new payment attempt</li>
+        </ul>
+        <h3>Partial refunds</h3>
+        <ul>
+          <li>Recorded as <code>payment_refund</code> rows. The payment moves to <code>refunded</code> only when fully refunded.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== CHECKOUT ============================== -->
+  <section class="panel" id="panel-checkout" hidden>
+    <div class="panel-head">
+      <h2>Checkout and payment, end to end</h2>
+      <p>This shows how a request travels from the Vue checkout wizard through a thin controller and handler to the pure
+        domain, the workflow and the gateway, and then back through the webhook.</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Checkout flow</span><span class="spacer"></span>
+          <button data-zoom="out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+sequenceDiagram
+  autonumber
+  actor U as Customer (Vue checkout)
+  participant C as CheckoutController<br/>(UI/Http/Api)
+  participant H as PlaceOrderHandler<br/>(Application)
+  participant D as Domain<br/>Pricing · Tax · Discount · StockPolicy
+  participant W as Order workflow
+  participant G as GatewayRegistry → FakeGateway
+  participant WH as WebhookController
+  participant P as HandlePaymentWebhookHandler
+
+  U->>C: POST /api/checkout {address, shipping, coupon} + CSRF
+  C->>H: dispatch PlaceOrder(orderPublicId, …)
+  H->>D: price lines, apply coupon, resolve VAT, check stock
+  D-->>H: OrderTotals + per-line snapshots
+  H->>W: can(order, "checkout")? (guards)
+  W-->>H: yes
+  H->>W: apply(order, "checkout") → payment_pending
+  Note over H: same transaction: reserve stock, number AUTO-000124, snapshot lines
+  H->>G: forStore(store).createCheckoutSession(PaymentRequest)
+  G-->>H: CheckoutSession {externalRef, redirectUrl}
+  H-->>C: redirectUrl
+  C-->>U: 200 {redirectUrl}
+  U->>G: completes payment on gateway page
+  G->>WH: POST /webhooks/payment/fake (signed)
+  WH->>P: store event (idempotent) → dispatch async
+  P->>G: handleWebhook(request) → PaymentEvent::Captured
+  P->>W: payment: capture → order: pay → paid
+  Note over P: same transaction: deduct stock, audit history, queue confirmation email
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>Thin boundaries</h3>
+        <ul>
+          <li>Controllers are about 10 lines each: validate the DTO and dispatch.</li>
+          <li>Handlers coordinate the work. The domain calculates and decides.</li>
+          <li>The workflow decides <em>whether</em> a change is allowed. The handler decides <em>what</em> changes.</li>
+        </ul>
+        <h3>Safety</h3>
+        <ul>
+          <li>Optimistic lock (<code>version</code>) on the order and the variants.</li>
+          <li>Webhooks are deduplicated by <code>(gateway_code, external_event_id)</code>.</li>
+          <li>A scheduled job cancels <code>payment_pending</code> orders after a TTL and releases their stock.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== EXTENSION POINTS ============================== -->
+  <section class="panel" id="panel-extension" hidden>
+    <div class="panel-head">
+      <h2>Extension points (open/closed)</h2>
+      <p>To add a gateway, discount rule, shipping calculator or tax rule, you add <strong>one new class</strong>. Autoconfiguration
+        tags it and a registry picks it up, so no existing code is edited.</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Extension points</span><span class="spacer"></span>
+          <button data-zoom="out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+classDiagram
+  direction TB
+  class PaymentGatewayInterface {
+    &lt;&lt;interface&gt;&gt;
+    +code() string
+    +createCheckoutSession(PaymentRequest) CheckoutSession
+    +handleWebhook(WebhookRequest) PaymentEvent
+    +refund(RefundRequest) RefundResult
+  }
+  class AbstractPaymentGateway {
+    &lt;&lt;abstract&gt;&gt;
+    #verifySignature(WebhookRequest) void
+    #toMinorUnits(Money) int
+  }
+  class FakeGateway {
+    +code() "fake"
+  }
+  class StripeGateway {
+    &lt;&lt;future&gt;&gt;
+  }
+  class MollieGateway {
+    &lt;&lt;future&gt;&gt;
+  }
+  class PaymentGatewayRegistry {
+    -ServiceLocator gateways
+    +forStore(Store) PaymentGatewayInterface
+    +get(code) PaymentGatewayInterface
+  }
+  PaymentGatewayInterface <|.. AbstractPaymentGateway
+  AbstractPaymentGateway <|-- FakeGateway
+  AbstractPaymentGateway <|-- StripeGateway
+  AbstractPaymentGateway <|-- MollieGateway
+  PaymentGatewayRegistry o-- PaymentGatewayInterface : tag app.payment_gateway
+
+  class DiscountRuleInterface {
+    &lt;&lt;interface&gt;&gt;
+    +supports(DiscountContext) bool
+    +apply(DiscountContext) DiscountResult
+  }
+  class CouponPercentageRule
+  class CouponFixedAmountRule
+  class CategoryPromotionRule {
+    &lt;&lt;future&gt;&gt;
+  }
+  DiscountRuleInterface <|.. CouponPercentageRule
+  DiscountRuleInterface <|.. CouponFixedAmountRule
+  DiscountRuleInterface <|.. CategoryPromotionRule
+
+  class ShippingCalculatorInterface {
+    &lt;&lt;interface&gt;&gt;
+    +code() string
+    +calculate(Shipment, config) Money
+  }
+  class FlatRateCalculator
+  class WeightBasedCalculator
+  class FreeOverThresholdCalculator
+  ShippingCalculatorInterface <|.. FlatRateCalculator
+  ShippingCalculatorInterface <|.. WeightBasedCalculator
+  ShippingCalculatorInterface <|.. FreeOverThresholdCalculator
+
+  class TaxRateResolverInterface {
+    &lt;&lt;interface&gt;&gt;
+    +resolve(country, taxCategory, date) TaxRate
+  }
+  class StoreCountryTaxRateResolver
+  class DestinationTaxRateResolver {
+    &lt;&lt;future&gt;&gt;
+  }
+  TaxRateResolverInterface <|.. StoreCountryTaxRateResolver
+  TaxRateResolverInterface <|.. DestinationTaxRateResolver
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>How switching works</h3>
+        <ul>
+          <li><code>#[AutoconfigureTag('app.payment_gateway')]</code> on the interface.</li>
+          <li>The registry receives a <code>#[AutowireLocator]</code> indexed by <code>code()</code>.</li>
+          <li><code>store.payment_gateway_code</code> chooses the gateway per store. Credentials come from env vars per gateway.</li>
+        </ul>
+        <h3>Where they live</h3>
+        <ul>
+          <li>Payment port: <code>Application\Payment</code>. Adapters: <code>Infrastructure\Payment</code>.</li>
+          <li>Discount, shipping and tax interfaces and their pure implementations: <code>Domain\*</code>. They are wired through Symfony tags in <code>config/services.yaml</code>.</li>
+        </ul>
+        <h3>Base classes</h3>
+        <ul>
+          <li><code>AbstractPaymentGateway</code> holds shared signature checking and money conversion.</li>
+          <li><code>AbstractApiController</code> holds shared JSON, validation and CSRF handling.</li>
+          <li>The frontend has matching base layouts: <code>bootstrap/base</code> and <code>vue/base</code>.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== FRONTEND ============================== -->
+  <section class="panel" id="panel-frontend" hidden>
+    <div class="panel-head">
+      <h2>Frontend asset isolation</h2>
+      <p>Vite builds three independent entries. Each Twig base layout loads <strong>exactly one</strong> ecosystem, so
+        Bootstrap never reaches a Vue page and Tailwind never reaches a Bootstrap page.</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Frontend isolation</span><span class="spacer"></span>
+          <button data-zoom="out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+flowchart LR
+  subgraph SRC_B["assets/bootstrap"]
+    direction TB
+    BJS["app.js<br/><small>jQuery 4 · Bootstrap 5.3 JS</small>"]
+    BCSS["app.scss<br/><small>Bootstrap 5 + theme vars</small>"]
+  end
+  subgraph SRC_V["assets/vue"]
+    direction TB
+    SJS["storefront.js<br/><small>mounts islands by data-vue-page</small>"]
+    AJS["admin.js<br/><small>SPA + vue-router</small>"]
+    TCSS["tailwind.css<br/><small>Tailwind 4 · tailwindcss-primeui</small>"]
+    PV["PrimeVue 5<br/><small>Aura preset</small>"]
+  end
+
+  VITE{{"Vite · pentatrion/vite-bundle<br/>3 entries, no shared CSS"}}
+
+  SRC_B --> VITE
+  SRC_V --> VITE
+
+  VITE --> OB["build: bootstrap-*.css / .js"]
+  VITE --> OS["build: storefront-*.css / .js"]
+  VITE --> OA["build: admin-*.css / .js"]
+
+  OB --> TB["templates/bootstrap/base.html.twig<br/><small>vite_entry_link_tags('bootstrap')</small>"]
+  OS --> TV["templates/vue/base.html.twig<br/><small>vite_entry_link_tags('storefront')</small>"]
+  OA --> TA["templates/vue/admin.html.twig<br/><small>vite_entry_link_tags('admin')</small>"]
+
+  TB --> PB["Landing · About · FAQ · Contact<br/>Terms · Privacy · Login · Register · Errors"]
+  TV --> PS["Catalog · Product · Cart<br/>Checkout wizard · Customer account"]
+  TA --> PA["Admin: dashboard · products · orders<br/>coupons · stores · staff"]
+
+  CHECK["CI guard: bootstrap CSS has no Tailwind classes or vars ·<br/>vue CSS has no .btn / .container / Bootstrap vars ·<br/>ESLint blocks imports across the two folders"]
+  OB -.-> CHECK
+  OS -.-> CHECK
+  OA -.-> CHECK
+
+  classDef bs fill:#efe6fb,stroke:#7952b3,color:#2a1747
+  classDef tw fill:#dff5f9,stroke:#0e8fa8,color:#08323c
+  class BJS,BCSS,OB,TB,PB bs
+  class SJS,AJS,TCSS,PV,OS,OA,TV,TA,PS,PA tw
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>Isolation rules</h3>
+        <ul>
+          <li>Templates extend <code>bootstrap/base</code> <em>or</em> <code>vue/base</code>, never both. There is no shared global CSS.</li>
+          <li>Tailwind 4 uses <code>@import "tailwindcss" source(none)</code> with <code>@source</code> limited to <code>assets/vue</code> and <code>templates/vue</code>. It never scans Bootstrap templates.</li>
+          <li>Tailwind's preflight reset exists only in the Vue bundles. Bootstrap's reboot exists only in the Bootstrap bundle.</li>
+          <li>Shared design tokens (spacing, fonts, radii) come from one <code>tokens.json</code>, compiled into SCSS variables and Tailwind <code>@theme</code>. The tokens are shared, the CSS is not.</li>
+        </ul>
+        <h3>Per-store branding</h3>
+        <ul>
+          <li>Each store sets its <code>logo_url</code>, <code>favicon_url</code>, <code>primary_color</code> and <code>accent_color</code>.</li>
+          <li>Both base layouts print them as CSS variables (<code>--brand-primary</code>, <code>--brand-accent</code> + generated shades) in a small inline <code>&lt;style&gt;</code>.</li>
+          <li>Bootstrap maps them to <code>--bs-primary</code>. Tailwind <code>@theme</code> maps them to <code>primary-*</code>. PrimeVue Aura receives them at runtime through <code>updatePrimaryPalette()</code>.</li>
+          <li>The admin keeps a neutral platform theme and shows only the store logo in the switcher.</li>
+        </ul>
+        <h3>Vue mounting</h3>
+        <ul>
+          <li>Storefront: Twig renders <code>&lt;div data-vue-page="Catalog" data-props='…'&gt;</code>, and <code>storefront.js</code> mounts the matching page component.</li>
+          <li>Admin: one Twig shell route <code>/{any}</code> on <code>admin.shop.test</code>. Vue Router takes over from there.</li>
+          <li>API calls go through a typed <code>ApiClient</code> interface with the session cookie and the <code>X-CSRF-Token</code> header.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== GIT ============================== -->
+  <section class="panel" id="panel-git" hidden>
+    <div class="panel-head">
+      <h2>Branching strategy</h2>
+      <p>There are three long-lived branches, one per environment. Changes only flow upward: <code>feature/*</code> → <code>test</code> → <code>stage</code> → <code>production</code>.
+        Hotfixes start from <code>production</code> and are merged back down.</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Git flow</span><span class="spacer"></span>
+          <button data-zoom="out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+%%{init: {'gitGraph': {'mainBranchName': 'production', 'showCommitLabel': true}}}%%
+gitGraph
+  commit id: "v0.1.0" tag: "v0.1.0"
+  branch stage
+  branch test
+  checkout test
+  branch feature/tenancy
+  commit id: "TenantFilter"
+  commit id: "store switcher"
+  checkout test
+  merge feature/tenancy id: "CI green"
+  branch feature/checkout
+  commit id: "PlaceOrder"
+  checkout test
+  merge feature/checkout id: "CI green 2"
+  checkout stage
+  merge test id: "QA sign-off"
+  checkout production
+  merge stage id: "release" tag: "v0.2.0"
+  branch hotfix/vat-rounding
+  commit id: "fix rounding"
+  checkout production
+  merge hotfix/vat-rounding tag: "v0.2.1"
+  checkout stage
+  merge production id: "back-merge"
+  checkout test
+  merge stage id: "back-merge 2"
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>Branches</h3>
+        <ul>
+          <li><strong><code>test</code></strong> is the default branch. Feature pull requests target it, and CI runs unit, integration, deptrac, PHPStan and linting.</li>
+          <li><strong><code>stage</code></strong>: pre-production. It is deployed to the staging environment for final QA with fixtures or anonymised data.</li>
+          <li><strong><code>production</code></strong>: live. It only receives merges from <code>stage</code> or <code>hotfix/*</code>, and every release is tagged with SemVer.</li>
+        </ul>
+        <h3>Protection</h3>
+        <ul>
+          <li>No direct pushes to any of the three branches. Pull requests need green CI and one review.</li>
+          <li>Merges from <code>stage</code> to <code>production</code> are restricted to maintainers.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <footer>Diagrams are Mermaid source inside this file. Edit the text in the <code>&lt;pre class="mermaid"&gt;</code> blocks and reload.</footer>
+</div>
+<script src="_viewer.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{# Base layout for storefront Vue islands. Loads ONLY the "storefront" entry (no Bootstrap). #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('en') }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}{% endblock %}</title>
+        {% block stylesheets %}{{ vite_entry_link_tags('storefront') }}{% endblock %}
+        {% block javascripts %}{{ vite_entry_script_tags('storefront') }}{% endblock %}
+    </head>
+    <body>
+        {% block body %}{% endblock %}
+    </body>
+</html>

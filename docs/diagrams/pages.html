@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyOil's — Pages &amp; UI Standards</title>
+<link rel="stylesheet" href="_viewer.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.min.js"></script>
+<style>
+  /* Low-fidelity wireframes. They always use the light storefront look, using the default MyOil's Auto palette. */
+  :root {
+    --brand-primary: #0F2742; --brand-accent: #F2A900; --wf-bg: #ffffff; --wf-soft: #f2f4f7; --wf-line: #d5dae1;
+    --wf-text: #1c2330; --wf-muted: #6b7482; --wf-red: #c62828; --wf-green: #2e7d32;
+  }
+  .toast, .modal { color: var(--wf-text); }
+  .wf-frame {
+    background: var(--wf-bg); color: var(--wf-text); border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; font-size: 13px; line-height: 1.45; margin-bottom: 22px; box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  }
+  .wf-caption { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 8px 12px; background: var(--surface-2);
+    border-bottom: 1px solid var(--border); color: var(--muted); font-size: 12.5px; }
+  .wf-caption b { color: var(--text); }
+  .stack-bs, .stack-vue { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; color: #fff; }
+  .stack-bs { background: #7952b3; } .stack-vue { background: #0e8fa8; }
+  .wf-body { padding: 14px; }
+  .wf-top { background: var(--brand-primary); color: #dfe6ef; padding: 5px 14px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 12px; }
+  .wf-header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid var(--wf-line); }
+  .wf-logo { font-weight: 800; color: var(--brand-primary); font-size: 15px; letter-spacing: -.01em; }
+  .wf-logo svg { color: var(--brand-accent); margin-right: 4px; }
+  .wf-nav { display: flex; gap: 14px; flex-wrap: wrap; color: var(--wf-text); font-weight: 600; }
+  .wf-search { flex: 1; min-width: 160px; border: 1px solid var(--wf-line); border-radius: 6px; padding: 5px 10px; color: var(--wf-muted); }
+  .wf-icons { display: flex; gap: 12px; font-size: 15px; }
+  .wf-footer { background: var(--wf-soft); border-top: 1px solid var(--wf-line); padding: 12px 14px; color: var(--wf-muted); display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; }
+  .wf-box { background: var(--wf-soft); border: 1.5px dashed var(--wf-line); border-radius: 8px; padding: 10px; color: var(--wf-muted); }
+  .wf-box > b, .wf-h { display: block; color: var(--wf-text); font-weight: 700; margin-bottom: 4px; }
+  .wf-img { background: repeating-linear-gradient(45deg, #e7eaef, #e7eaef 8px, #eef1f4 8px, #eef1f4 16px); border-radius: 6px; min-height: 70px;
+    display: grid; place-items: center; color: var(--wf-muted); font-size: 11px; }
+  .wf-hero { background: linear-gradient(120deg, var(--brand-primary), #1d3f66); color: #fff; border-radius: 10px; padding: 26px 22px; }
+  .wf-hero h3 { margin: 0 0 6px; font-size: 20px; }
+  .wf-btn { display: inline-block; background: var(--brand-accent); color: #1c1400; font-weight: 700; border-radius: 6px; padding: 6px 12px; font-size: 12.5px; border: 0; }
+  .wf-btn.secondary { background: #fff; color: var(--wf-text); border: 1px solid var(--wf-line); }
+  .wf-btn.primary { background: var(--brand-primary); color: #fff; }
+  .wf-btn.danger { background: var(--wf-red); color: #fff; }
+  .wf-btn.ghost { background: transparent; color: var(--brand-primary); padding-left: 0; padding-right: 0; }
+  .wf-grid { display: grid; gap: 12px; }
+  .g2 { grid-template-columns: repeat(2, minmax(0,1fr)); } .g3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .g4 { grid-template-columns: repeat(4, minmax(0,1fr)); } .g5 { grid-template-columns: repeat(5, minmax(0,1fr)); }
+  .side-l { grid-template-columns: 220px minmax(0,1fr); } .side-r { grid-template-columns: minmax(0,1fr) 280px; }
+  .prod { grid-template-columns: minmax(0,1fr) minmax(0,1.1fr); }
+  @media (max-width: 820px) { .g3,.g4,.g5,.side-l,.side-r,.prod { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+  @media (max-width: 560px) { .g2,.g3,.g4,.g5,.side-l,.side-r,.prod { grid-template-columns: minmax(0,1fr); } }
+  .wf-card { border: 1px solid var(--wf-line); border-radius: 8px; padding: 8px; background: #fff; }
+  .wf-card .name { font-weight: 700; margin: 6px 0 2px; }
+  .price { font-weight: 800; font-size: 15px; color: var(--wf-text); }
+  .price-big { font-weight: 800; font-size: 24px; }
+  .muted { color: var(--wf-muted); font-size: 12px; }
+  .chip { display: inline-block; border: 1px solid var(--wf-line); border-radius: 999px; padding: 0 8px; font-size: 11px; margin: 2px 2px 0 0; background: #fff; }
+  .chip.on { border-color: var(--brand-primary); background: var(--brand-primary); color: #fff; }
+  .chip.spec { background: #eef3fb; border-color: #c9d7ee; color: #1d3f66; font-weight: 600; }
+  .pack { border: 1.5px solid var(--wf-line); border-radius: 8px; padding: 6px 8px; text-align: center; background: #fff; }
+  .pack.on { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(15,39,66,.12); }
+  .ok { color: var(--wf-green); font-weight: 700; } .bad { color: var(--wf-red); }
+  .field { margin-bottom: 8px; }
+  .field label { display: block; font-weight: 600; font-size: 12px; margin-bottom: 2px; }
+  .field label .req { color: var(--wf-red); }
+  .input { border: 1px solid var(--wf-line); border-radius: 6px; padding: 5px 8px; background: #fff; color: var(--wf-muted); min-height: 28px; }
+  .input.focus { border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(15,39,66,.15); color: var(--wf-text); }
+  .input.invalid { border: 1.5px solid var(--wf-red); color: var(--wf-text); position: relative; padding-right: 26px; }
+  .input.invalid::after { content: "!"; position: absolute; right: 7px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; border-radius: 50%;
+    background: var(--wf-red); color: #fff; font-size: 10px; font-weight: 800; display: grid; place-items: center; }
+  .input.valid { border-color: var(--wf-green); color: var(--wf-text); }
+  .field .err { color: var(--wf-red); font-size: 11.5px; margin-top: 2px; }
+  .summary-err { border: 1px solid #f1b7b7; background: #fdeeee; border-radius: 8px; padding: 8px 10px; color: #7a1b1b; margin-bottom: 10px; }
+  .summary-err a { color: #7a1b1b; }
+  .stepper { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .stepper span { flex: 1; min-width: 90px; text-align: center; padding: 5px; border-radius: 6px; background: var(--wf-soft); color: var(--wf-muted); font-weight: 600; font-size: 12px; }
+  .stepper span.done { background: #e3f1e5; color: var(--wf-green); } .stepper span.on { background: var(--brand-primary); color: #fff; }
+  .wf-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; border: 0; }
+  .wf-table th, .wf-table td { border-bottom: 1px solid var(--wf-line); padding: 5px 6px; text-align: left; background: #fff; color: var(--wf-text); }
+  .wf-table th { color: var(--wf-muted); font-weight: 600; background: #fff; }
+  .kpi { border: 1px solid var(--wf-line); border-radius: 8px; padding: 10px; background: #fff; }
+  .kpi .v { font-size: 20px; font-weight: 800; }
+  .admin-shell { display: grid; grid-template-columns: 200px minmax(0,1fr); min-height: 420px; }
+  @media (max-width: 700px) { .admin-shell { grid-template-columns: minmax(0,1fr); } }
+  .admin-side { background: #1f2430; color: #c9d1dd; padding: 12px 10px; font-size: 12.5px; }
+  .admin-side .it { padding: 5px 8px; border-radius: 6px; } .admin-side .it.on { background: #343b4b; color: #fff; font-weight: 700; }
+  .admin-side .sub { padding-left: 26px; color: #9aa4b5; font-size: 12px; }
+  .admin-side .sep { border-top: 1px solid #3a4152; margin: 8px 0; }
+  .admin-side .grp { text-transform: uppercase; font-size: 10.5px; letter-spacing: .06em; color: #7d879a; padding: 6px 8px 2px; }
+  .admin-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--wf-line); flex-wrap: wrap; }
+  .switcher { border: 1px solid var(--wf-line); border-radius: 6px; padding: 3px 10px; font-weight: 600; }
+  .b { display: inline-block; border-radius: 999px; padding: 0 8px; font-size: 11px; font-weight: 700; color: #fff; }
+  .b.gray{background:#6b7280}.b.amber{background:#b7791f}.b.green{background:#2f855a}.b.blue{background:#2b6cb0}.b.indigo{background:#5a4fcf}.b.teal{background:#2c7a7b}.b.red{background:#c53030}.b.purple{background:#805ad5}
+  .toast { display: flex; gap: 10px; align-items: flex-start; border-radius: 8px; padding: 9px 11px; background: #fff; border: 1px solid var(--wf-line);
+    border-left-width: 5px; box-shadow: 0 4px 14px rgba(0,0,0,.08); margin-bottom: 8px; max-width: 360px; }
+  .toast .t { font-weight: 700; } .toast .x { margin-left: auto; color: var(--wf-muted); }
+  .toast.success { border-left-color: #2e7d32; } .toast.info { border-left-color: #1d6fd1; } .toast.warn { border-left-color: #c77c00; } .toast.error { border-left-color: #c62828; }
+  .modal { max-width: 420px; border-radius: 10px; background: #fff; border: 1px solid var(--wf-line); box-shadow: 0 12px 30px rgba(0,0,0,.14); overflow: hidden; }
+  .modal .mh { padding: 12px 14px 4px; font-weight: 800; font-size: 15px; }
+  .modal .mb { padding: 4px 14px 12px; color: #3b4452; }
+  .modal .mf { padding: 10px 14px; background: var(--wf-soft); display: flex; justify-content: flex-end; gap: 8px; }
+  .backdrop { background: rgba(15,23,35,.45); padding: 22px; border-radius: 8px; display: grid; place-items: center; }
+  .skel { background: linear-gradient(90deg, #eceff3 25%, #f5f7f9 50%, #eceff3 75%); border-radius: 6px; height: 12px; margin: 6px 0; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .section-title { margin: 26px 0 10px; font-size: 1.05rem; }
+  .section-title:first-child { margin-top: 0; }
+  .two-col { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: minmax(0,1fr); } }
+  svg.lucide { width: 1.05em; height: 1.05em; vertical-align: -0.16em; stroke-width: 2; flex: none; }
+  .toast .ti svg.lucide { width: 20px; height: 20px; vertical-align: middle; }
+  .toast.success .ti { color: #2e7d32; } .toast.info .ti { color: #1d6fd1; } .toast.warn .ti { color: #c77c00; } .toast.error .ti { color: #c62828; }
+  .toast .x svg.lucide { width: 16px; height: 16px; }
+  .empty-ic svg.lucide { width: 32px; height: 32px; color: var(--wf-muted); stroke-width: 1.6; }
+  .wf-icons svg.lucide { width: 18px; height: 18px; }
+  .admin-side .it svg.lucide { margin-right: 6px; }
+  .range { display: flex; align-items: center; gap: 6px; } .range .track { flex: 1; height: 4px; border-radius: 4px; background: var(--wf-line); position: relative; }
+  .range .fill { position: absolute; left: 0; right: 35%; top: 0; bottom: 0; border-radius: 4px; background: var(--brand-primary); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-head">
+    <div>
+      <h1>Pages &amp; UI standards</h1>
+      <p>Navigation maps, low-fidelity page sketches, and the shared rules for toasts, forms, dialogs and errors.
+        <span class="stack-bs">Bootstrap</span> pages are Twig + jQuery. <span class="stack-vue">Vue</span> pages are Vue 3 + PrimeVue + Tailwind.
+        The sketches show layout and content, not the final visual design. Colours follow the store's own branding (here: MyOil's Auto).</p>
+    </div>
+    <nav><a href="db-schema.html">← Database schema</a> &nbsp;·&nbsp; <a href="architecture.html">Architecture</a></nav>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button data-target="shop-map" role="tab">Storefront map</button>
+    <button data-target="admin-map" role="tab">Admin map</button>
+    <button data-target="landing" role="tab">Landing</button>
+    <button data-target="catalog" role="tab">Catalog &amp; product</button>
+    <button data-target="checkout" role="tab">Cart &amp; checkout</button>
+    <button data-target="account" role="tab">Customer account</button>
+    <button data-target="admin" role="tab">Admin pages</button>
+    <button data-target="ui" role="tab">UI standards</button>
+    <button data-target="errors" role="tab">Error handling</button>
+  </div>
+
+  <!-- ============================== STOREFRONT MAP ============================== -->
+  <section class="panel" id="panel-shop-map" hidden>
+    <div class="panel-head">
+      <h2>Storefront map</h2>
+      <p>Every URL on a store host (for example <code>myoils-auto.shop.test</code>) and the stack that renders it. The header and footer are the same on every page,
+        and look identical in both stacks.</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Storefront</span><span class="spacer"></span>
+          <button data-zoom="out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+flowchart LR
+  HOST(("store host"))
+
+  subgraph HDR["Header · every page"]
+    direction TB
+    H1["Top-level categories <i data-lucide="chevron-down"></i><br/><small>mega-menu from category tree</small>"]
+    H2["Search box"]
+    H3["Login / Account menu"]
+    H4["Mini-cart drawer"]
+    H5["Other MyOil's shops"]
+  end
+
+  subgraph BS["Bootstrap + jQuery (Twig)"]
+    direction TB
+    HOME["/ · Landing"]
+    ABOUT["/about"]
+    FAQ["/faq"]
+    CONTACT["/contact · form"]
+    TERMS["/terms · /privacy"]
+    SHIPINFO["/shipping-info"]
+    SDS["/safety-data-sheets"]
+    LOGIN["/login"]
+    REG["/register · with addresses"]
+    RESET["/reset-password"]
+    ERR["Error pages<br/>404 · 403 · 419 · 429 · 500 · 503"]
+  end
+
+  subgraph VUE["Vue 3 + PrimeVue (islands)"]
+    direction TB
+    CAT["/c/{category} · Catalog"]
+    SEARCH["/search?q= · Results"]
+    PROD["/p/{slug} · Product"]
+    CART["/cart · Cart"]
+    CHK["/checkout · Wizard"]
+    PAY["/pay/{payment} · FakeGateway"]
+    THX["/order/{publicId}/thanks"]
+    ACC["/account · Dashboard"]
+    ORD["/account/orders · detail"]
+    ADDR["/account/addresses"]
+    PROF["/account/profile"]
+  end
+
+  HOST --> HDR
+  HOST --> BS
+  HOST --> VUE
+  CAT --> PROD --> CART --> CHK --> PAY --> THX
+  SEARCH --> PROD
+  ACC --> ORD
+  ACC --> ADDR
+  ACC --> PROF
+
+  classDef bs fill:#efe6fb,stroke:#7952b3,color:#2a1747
+  classDef vue fill:#dff5f9,stroke:#0e8fa8,color:#08323c
+  classDef hdr fill:#fdf1dc,stroke:#b7791f,color:#3d2a07
+  class HOME,ABOUT,FAQ,CONTACT,TERMS,SHIPINFO,SDS,LOGIN,REG,RESET,ERR bs
+  class CAT,SEARCH,PROD,CART,CHK,PAY,THX,ACC,ORD,ADDR,PROF vue
+  class H1,H2,H3,H4,H5 hdr
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>Footer (every page)</h3>
+        <ul>
+          <li>About · FAQ · Contact · Shipping info · Safety data sheets</li>
+          <li>Terms · Privacy</li>
+          <li>Store contact details and payment/shipping logos</li>
+        </ul>
+        <h3>Account menu (user icon, logged in)</h3>
+        <ul>
+          <li>Dashboard · Orders · Addresses · Profile &amp; security · Log out</li>
+        </ul>
+        <h3>Rules</h3>
+        <ul>
+          <li>The header and footer have one design implemented twice: a Twig partial for Bootstrap pages, and a Vue component that receives the same data as JSON.</li>
+          <li>Login, registration and password reset are Twig forms (decision #21). Password reset is a standard part of login.</li>
+          <li>"Find the right oil" links to the filtered catalog for now. The oil finder wizard comes in a later phase.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== ADMIN MAP ============================== -->
+  <section class="panel" id="panel-admin-map" hidden>
+    <div class="panel-head">
+      <h2>Admin navigation</h2>
+      <p>The <strong>main navigation</strong> holds daily work. <strong>Settings</strong> holds rarely changed configuration for the selected store.
+        <strong>Platform</strong> is visible to the super-admin only and covers all stores.</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Admin</span><span class="spacer"></span>
+          <button data-zoom="out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+flowchart LR
+  A(("admin.shop.test"))
+
+  subgraph MAIN["Main navigation · daily work"]
+    direction TB
+    DASH["Dashboard"]
+    ORD["Orders<br/><small>list · detail with workflow actions</small>"]
+    CAT["Catalog"]
+    P["Products<br/><small>General · Pack sizes &amp; stock · Specs<br/>Images (URLs) · Documents</small>"]
+    C["Categories<br/><small>drag &amp; drop tree</small>"]
+    AT["Attributes<br/><small>SAE · ISO VG · specs · options</small>"]
+    CUS["Customers<br/><small>list · detail (orders, addresses)</small>"]
+    MSG["Contact messages<br/><small>tab inside Customers</small>"]
+    CPN["Coupons"]
+  end
+
+  subgraph SET["Settings · selected store"]
+    direction TB
+    S1["Store profile &amp; branding<br/><small>name · logo URL · favicon URL · colours<br/>contact · order prefix · low-stock threshold</small>"]
+    S2["Domains"]
+    S3["Shipping methods"]
+    S4["Payment gateway"]
+    S5["Staff &amp; roles<br/><small>memberships for this store</small>"]
+    S6["Email notifications"]
+  end
+
+  subgraph PLAT["Platform · super-admin only"]
+    direction TB
+    X1["Stores<br/><small>create · activate · deactivate</small>"]
+    X2["Countries &amp; VAT rates<br/><small>with valid from / to</small>"]
+    X3["Tax categories"]
+    X4["Staff users"]
+    X5["System<br/><small>queues · failed jobs · rate-limit log</small>"]
+  end
+
+  TOP["Top bar: store switcher · global search · My profile / Log out"]
+
+  A --> TOP
+  A --> MAIN
+  A --> SET
+  A --> PLAT
+  CAT --> P
+  CAT --> C
+  CAT --> AT
+  CUS --> MSG
+
+  classDef main fill:#dff5f9,stroke:#0e8fa8,color:#08323c
+  classDef set fill:#eceff3,stroke:#6b7280,color:#1c2330
+  classDef plat fill:#fdf1dc,stroke:#b7791f,color:#3d2a07
+  class DASH,ORD,CAT,P,C,AT,CUS,MSG,CPN main
+  class S1,S2,S3,S4,S5,S6 set
+  class X1,X2,X3,X4,X5 plat
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>Who sees what</h3>
+        <ul>
+          <li><strong>staff</strong>: Dashboard, Orders, Catalog, Customers, Coupons.</li>
+          <li><strong>manager</strong>: the above plus Settings, except Staff &amp; roles.</li>
+          <li><strong>owner</strong>: everything in Settings.</li>
+          <li><strong>super-admin</strong>: everything plus Platform, and an "All stores" option in the switcher (read-only).</li>
+        </ul>
+        <h3>Store switcher</h3>
+        <ul>
+          <li>Shows the store logo and name, and lists only the stores in the user's memberships.</li>
+          <li>Switching with unsaved changes triggers the unsaved-changes dialog.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== LANDING ============================== -->
+  <section class="panel" id="panel-landing" hidden>
+    <div class="panel-head">
+      <h2>Landing page</h2>
+      <p>Twig + Bootstrap + jQuery. The top bar, header and footer shown here are shared by every storefront page.</p>
+    </div>
+    <div class="wf-frame">
+      <div class="wf-caption"><span><b>/</b> · Landing</span><span class="stack-bs">Bootstrap</span></div>
+      <div class="wf-top"><span><i data-lucide="phone"></i> 020 123 4567 · Free shipping over €100</span><span><i data-lucide="store"></i> Other MyOil's shops <i data-lucide="chevron-down"></i></span></div>
+      <div class="wf-header">
+        <span class="wf-logo"><i data-lucide="droplet"></i>MyOil's Auto</span>
+        <span class="wf-nav"><span>Engine oil <i data-lucide="chevron-down"></i></span><span>Gear &amp; ATF <i data-lucide="chevron-down"></i></span><span>Coolants <i data-lucide="chevron-down"></i></span><span>Care <i data-lucide="chevron-down"></i></span></span>
+        <span class="wf-search"><i data-lucide="search"></i> Search products, SAE, specifications…</span>
+        <span class="wf-icons"><i data-lucide="user"></i><span><i data-lucide="shopping-cart"></i><sup>3</sup></span></span>
+      </div>
+      <div class="wf-body">
+        <div class="wf-hero">
+          <h3>The right oil for every engine</h3>
+          <div style="opacity:.85;margin-bottom:12px">OEM-approved lubricants, shipped from the Netherlands within 24 h.</div>
+          <span class="wf-btn">Find the right oil →</span> <span class="wf-btn secondary">Business customer?</span>
+        </div>
+        <div class="wf-h" style="margin-top:16px">Shop by category</div>
+        <div class="wf-grid g5">
+          <div class="wf-card"><div class="wf-img">image</div><div class="name">Engine oil</div></div>
+          <div class="wf-card"><div class="wf-img">image</div><div class="name">Gear &amp; ATF</div></div>
+          <div class="wf-card"><div class="wf-img">image</div><div class="name">Coolants</div></div>
+          <div class="wf-card"><div class="wf-img">image</div><div class="name">Brake fluid</div></div>
+          <div class="wf-card"><div class="wf-img">image</div><div class="name">Care products</div></div>
+        </div>
+        <div class="wf-h" style="margin-top:16px">Featured products</div>
+        <div class="wf-grid g4">
+          <div class="wf-card"><div class="wf-img">image</div><div class="name">Synth Pro 5W-30</div><span class="chip spec">5W-30</span><span class="chip spec">ACEA C3</span>
+            <div class="price">from €12.95</div><div class="muted">incl. VAT · €12.95 per L</div></div>
+          <div class="wf-card"><div class="wf-img">image</div><div class="name">Longlife 0W-20</div><span class="chip spec">0W-20</span><span class="chip spec">API SP</span>
+            <div class="price">from €14.50</div><div class="muted">incl. VAT · €14.50 per L</div></div>
+          <div class="wf-card"><div class="wf-img">image</div><div class="name">ATF Multi</div><span class="chip spec">Dexron VI</span>
+            <div class="price">from €10.95</div><div class="muted">incl. VAT · €10.95 per L</div></div>
+          <div class="wf-card"><div class="wf-img">image</div><div class="name">Coolant G12++</div><span class="chip spec">-37 °C</span>
+            <div class="price">from €8.95</div><div class="muted">incl. VAT · €1.79 per L</div></div>
+        </div>
+        <div class="wf-grid g2" style="margin-top:16px">
+          <div class="wf-box"><b>Oil finder (teaser)</b>"Not sure which oil? Choose application → viscosity → specification." The button links to the filtered catalog for now. <span class="muted">(Wizard in a later phase)</span></div>
+          <div class="wf-box"><b>Why MyOil's</b><i data-lucide="check"></i> OEM approvals · <i data-lucide="check"></i> Delivery in 24 h · <i data-lucide="check"></i> Business pricing · <i data-lucide="check"></i> SDS for every product</div>
+        </div>
+        <div class="wf-box" style="margin-top:12px"><b>Business banner</b>"Workshop or fleet? Order with your company details and VAT ID." <span class="wf-btn primary">Contact sales</span></div>
+      </div>
+      <div class="wf-footer"><span>About</span><span>FAQ</span><span>Contact</span><span>Shipping info</span><span>Safety data sheets</span><span>Terms</span><span>Privacy</span><span style="margin-left:auto">© MyOil's Auto · KvK 12345678</span></div>
+    </div>
+  </section>
+
+  <!-- ============================== CATALOG & PRODUCT ============================== -->
+  <section class="panel" id="panel-catalog" hidden>
+    <div class="panel-head">
+      <h2>Catalog and product page</h2>
+      <p>Vue islands with PrimeVue components (DataView, Checkbox, Slider, Paginator, Tabs, Galleria). Prices: <strong>incl. VAT large</strong>, excl. VAT small,
+        and the <strong>price per litre is always shown</strong>.</p>
+    </div>
+
+    <div class="wf-frame">
+      <div class="wf-caption"><span><b>/c/engine-oil</b> · Catalog</span><span class="stack-vue">Vue</span></div>
+      <div class="wf-body">
+        <div class="muted">Home › Engine oil</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin:6px 0 10px">
+          <b style="font-size:17px">Engine oil</b>
+          <span><span class="muted">48 products</span> · Sort: <span class="chip">Relevance <i data-lucide="chevron-down"></i></span> · <span class="chip on"><i data-lucide="layout-grid"></i> Grid</span><span class="chip"><i data-lucide="list"></i> List</span></span>
+        </div>
+        <div class="wf-grid side-l">
+          <div class="wf-box">
+            <b>Filters</b>
+            <div class="wf-h" style="margin-top:6px">Category</div><i data-lucide="chevron-right"></i> Passenger car<br><i data-lucide="chevron-right"></i> Van &amp; SUV<br><i data-lucide="chevron-right"></i> Classic cars
+            <div class="wf-h" style="margin-top:8px">SAE viscosity</div><i data-lucide="square-check"></i> 5W-30 (12)<br><i data-lucide="square"></i> 0W-20 (8)<br><i data-lucide="square"></i> 10W-40 (9)
+            <div class="wf-h" style="margin-top:8px">Specification</div><i data-lucide="square-check"></i> ACEA C3<br><i data-lucide="square"></i> API SP<br><i data-lucide="square"></i> VW 504.00
+            <div class="wf-h" style="margin-top:8px">Pack size</div><span class="chip">1 L</span><span class="chip on">5 L</span><span class="chip">20 L</span><span class="chip">208 L</span>
+            <div class="wf-h" style="margin-top:8px">Price</div><span class="range"><span>€5</span><span class="track"><span class="fill"></span></span><span>€1,500</span></span>
+            <div class="wf-h" style="margin-top:8px"><i data-lucide="square-check"></i> In stock only</div>
+            <div class="muted" style="margin-top:6px">On mobile the filters open in a drawer.</div>
+          </div>
+          <div>
+            <div style="margin-bottom:8px">Active: <span class="chip on">5W-30 <i data-lucide="x"></i></span><span class="chip on">ACEA C3 <i data-lucide="x"></i></span><span class="chip on">5 L <i data-lucide="x"></i></span> <span class="wf-btn ghost">Clear all</span></div>
+            <div class="wf-grid g3">
+              <div class="wf-card"><div class="wf-img">image</div><div class="name">Synth Pro 5W-30</div><span class="chip spec">5W-30</span><span class="chip spec">ACEA C3</span>
+                <div class="price">€49.95</div><div class="muted">€41.28 excl. VAT · €9.99 per L</div><div class="ok" style="font-size:12px"><i data-lucide="check"></i> In stock</div></div>
+              <div class="wf-card"><div class="wf-img">image</div><div class="name">Diesel Tech 5W-30</div><span class="chip spec">5W-30</span><span class="chip spec">ACEA C3</span>
+                <div class="price">€52.50</div><div class="muted">€43.39 excl. VAT · €10.50 per L</div><div class="ok" style="font-size:12px"><i data-lucide="check"></i> In stock</div></div>
+              <div class="wf-card"><div class="wf-img">image</div><div class="name">Eco Drive 5W-30</div><span class="chip spec">5W-30</span><span class="chip spec">ACEA C3</span>
+                <div class="price">€44.95</div><div class="muted">€37.15 excl. VAT · €8.99 per L</div><div style="font-size:12px;color:#b7791f;font-weight:700">Only 3 left</div></div>
+            </div>
+            <div style="text-align:center;margin-top:10px" class="muted">‹ 1 <b>2</b> 3 … 8 ›</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wf-frame">
+      <div class="wf-caption"><span><b>/p/synth-pro-5w-30</b> · Product</span><span class="stack-vue">Vue</span></div>
+      <div class="wf-body">
+        <div class="muted">Home › Engine oil › Passenger car › Synth Pro 5W-30</div>
+        <div class="wf-grid prod" style="margin-top:8px">
+          <div>
+            <div class="wf-img" style="min-height:220px">main image (changes with pack size)</div>
+            <div class="wf-grid g4" style="margin-top:6px"><div class="wf-img">1 L</div><div class="wf-img">5 L</div><div class="wf-img">20 L</div><div class="wf-img">208 L</div></div>
+          </div>
+          <div>
+            <b style="font-size:19px">MyOil's Synth Pro 5W-30</b>
+            <div style="margin:4px 0 10px"><span class="chip spec">SAE 5W-30</span><span class="chip spec">ACEA C3</span><span class="chip spec">API SN</span><span class="chip spec">VW 504.00/507.00</span></div>
+            <div class="wf-h">Pack size</div>
+            <div class="wf-grid g4">
+              <div class="pack"><b>1 L</b><div class="muted">€12.95<br>€12.95/L</div></div>
+              <div class="pack on"><b>5 L</b><div class="muted">€49.95<br>€9.99/L</div></div>
+              <div class="pack"><b>20 L</b><div class="muted">€169.00<br>€8.45/L</div></div>
+              <div class="pack"><b>208 L</b><div class="muted">€1,489.00<br>€7.16/L</div></div>
+            </div>
+            <div style="margin-top:12px"><span class="price-big">€49.95</span> <span class="muted">incl. 21% VAT</span></div>
+            <div class="muted">€41.28 excl. VAT · €9.99 per litre</div>
+            <div class="ok" style="margin:6px 0"><i data-lucide="check"></i> In stock, ships today</div>
+            <div style="display:flex;gap:8px;align-items:center"><span class="input" style="width:90px;text-align:center;color:#1c2330">− 1 +</span><span class="wf-btn primary">Add to cart</span></div>
+            <div class="muted" style="margin-top:8px"><i data-lucide="truck"></i> Free shipping over €100 · <i data-lucide="file-text"></i> SDS available</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;border-bottom:1px solid var(--wf-line);display:flex;gap:16px;font-weight:700">
+          <span style="border-bottom:2px solid var(--brand-primary);padding-bottom:4px">Description</span><span class="muted">Specifications</span><span class="muted">Approvals</span><span class="muted">Documents</span>
+        </div>
+        <div class="wf-grid g2" style="margin-top:10px">
+          <div class="wf-box"><b>Specifications tab</b>A table of attribute values: SAE 5W-30 · Base: fully synthetic · Density 0.85 kg/L · Pour point −39 °C…</div>
+          <div class="wf-box"><b>Documents tab</b><i data-lucide="file-text"></i> Safety data sheet (EN, PDF) · <i data-lucide="file-text"></i> Technical data sheet (EN, PDF). Both are links.</div>
+        </div>
+        <div class="wf-h" style="margin-top:12px">Related products</div>
+        <div class="wf-grid g4"><div class="wf-img">card</div><div class="wf-img">card</div><div class="wf-img">card</div><div class="wf-img">card</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== CHECKOUT ============================== -->
+  <section class="panel" id="panel-checkout" hidden>
+    <div class="panel-head">
+      <h2>Cart and checkout</h2>
+      <p>A mini-cart drawer (PrimeVue Drawer), a full cart page with coupon entry, and the checkout wizard (PrimeVue Stepper). The order summary stays on the right
+        through every step, and moves below the form on mobile.</p>
+    </div>
+    <div class="two-col">
+      <div class="wf-frame">
+        <div class="wf-caption"><span><b>Mini-cart drawer</b> · opens from the cart icon</span><span class="stack-vue">Vue</span></div>
+        <div class="wf-body">
+          <b>Your cart (3)</b>
+          <table class="wf-table" style="margin-top:6px">
+            <tr><td>Synth Pro 5W-30 · 5 L</td><td>1×</td><td>€49.95</td></tr>
+            <tr><td>Coolant G12++ · 5 L</td><td>2×</td><td>€17.91</td></tr>
+          </table>
+          <div style="display:flex;justify-content:space-between;margin-top:8px"><b>Subtotal</b><b>€67.86</b></div>
+          <div class="muted">€32.14 more for free shipping</div>
+          <div style="margin-top:8px;display:flex;gap:6px"><span class="wf-btn secondary">View cart</span><span class="wf-btn primary">Checkout</span></div>
+        </div>
+      </div>
+      <div class="wf-frame">
+        <div class="wf-caption"><span><b>/cart</b> · Cart page</span><span class="stack-vue">Vue</span></div>
+        <div class="wf-body">
+          <div>Lines with image, pack size, quantity stepper, line total and remove (<i data-lucide="trash-2"></i> → confirmation dialog).</div>
+          <div class="field" style="margin-top:8px"><label>Coupon code</label><div style="display:flex;gap:6px"><div class="input invalid" style="flex:1">SUMMER10</div><span class="wf-btn secondary">Apply</span></div>
+            <div class="err">This code expired on 31 August 2026.</div></div>
+          <div class="muted">Totals are shown excl. VAT, VAT and incl. VAT, and shipping is estimated.</div>
+        </div>
+      </div>
+    </div>
+    <div class="wf-frame">
+      <div class="wf-caption"><span><b>/checkout</b> · step 2 Addresses (showing validation errors)</span><span class="stack-vue">Vue</span></div>
+      <div class="wf-body">
+        <div class="stepper"><span class="done"><i data-lucide="check"></i> 1 Account</span><span class="on">2 Addresses</span><span>3 Shipping</span><span>4 Review</span><span>5 Pay</span></div>
+        <div class="wf-grid side-r">
+          <div>
+            <div class="summary-err"><b>Please fix 2 fields:</b> <a href="#">Postcode</a> · <a href="#">House number</a></div>
+            <div class="wf-h">Billing address</div>
+            <div class="wf-grid g2">
+              <div class="field"><label>Company <span class="muted">(optional)</span></label><div class="input">Garage De Vries</div></div>
+              <div class="field"><label>VAT ID <span class="muted">(optional)</span></label><div class="input">NL123456789B01</div></div>
+              <div class="field"><label>First name <span class="req">*</span></label><div class="input valid">Jan</div></div>
+              <div class="field"><label>Last name <span class="req">*</span></label><div class="input valid">de Vries</div></div>
+              <div class="field"><label>Street <span class="req">*</span></label><div class="input valid">Keizersgracht</div></div>
+              <div class="field"><label>House number <span class="req">*</span></label><div class="input invalid">&nbsp;</div><div class="err">Enter a house number.</div></div>
+              <div class="field"><label>Postcode <span class="req">*</span></label><div class="input invalid">10123</div><div class="err">Use the format 1234 AB.</div></div>
+              <div class="field"><label>City <span class="req">*</span></label><div class="input valid">Amsterdam</div></div>
+            </div>
+            <div style="margin:6px 0"><i data-lucide="square-check"></i> <b>Delivery address is the same as billing</b> <span class="muted">(untick to show a second address form)</span></div>
+            <div class="muted">Logged-in customers pick from their address book (cards) instead, or add a new address.</div>
+            <div style="display:flex;justify-content:space-between;margin-top:10px"><span class="wf-btn secondary">← Back</span><span class="wf-btn primary">Continue to shipping</span></div>
+          </div>
+          <div class="wf-box" style="background:#fff">
+            <b>Order summary</b>
+            Synth Pro 5W-30 · 5 L × 1 — €49.95<br>Coolant G12++ · 5 L × 2 — €17.91
+            <hr style="border:0;border-top:1px solid var(--wf-line)">
+            Subtotal excl. VAT — €56.08<br>VAT 21% — €11.78<br>Shipping — calculated in step 3
+            <div style="margin-top:6px"><b>Total incl. VAT — €67.86</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== ACCOUNT ============================== -->
+  <section class="panel" id="panel-account" hidden>
+    <div class="panel-head">
+      <h2>Customer account</h2>
+      <p>A left sidebar on desktop and tabs on mobile. The Addresses page enforces the rule: at least one billing and one delivery address.</p>
+    </div>
+    <div class="wf-frame">
+      <div class="wf-caption"><span><b>/account/addresses</b></span><span class="stack-vue">Vue</span></div>
+      <div class="wf-body">
+        <div class="wf-grid side-l">
+          <div class="wf-box" style="background:#fff">
+            <b>My account</b>
+            Dashboard<br>Orders<br><b style="color:var(--brand-primary)"><i data-lucide="chevron-right"></i> Addresses</b><br>Profile &amp; security<br><span class="muted">Log out</span>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><b style="font-size:16px">Addresses</b><span class="wf-btn primary">+ Add address</span></div>
+            <div class="wf-grid g2" style="margin-top:10px">
+              <div class="wf-card">
+                <span class="b green">Default billing</span> <span class="b blue">Default delivery</span>
+                <div style="margin-top:6px"><b>Garage De Vries</b> · NL123456789B01<br>Jan de Vries<br>Keizersgracht 12<br>1015 CX Amsterdam, NL</div>
+                <div class="muted" style="margin-top:4px">Used for: <i data-lucide="check"></i> Billing <i data-lucide="check"></i> Delivery</div>
+                <div style="margin-top:6px"><span class="wf-btn ghost">Edit</span> · <span class="muted" title="You need at least one billing and one delivery address">Delete (disabled: last billing address)</span></div>
+              </div>
+              <div class="wf-card">
+                <div style="height:18px"></div>
+                <div><b>Workshop</b><br>Jan de Vries<br>Industrieweg 4<br>1332 AB Almere, NL</div>
+                <div class="muted" style="margin-top:4px">Used for: <i data-lucide="check"></i> Delivery</div>
+                <div style="margin-top:6px"><span class="wf-btn ghost">Edit</span> · <span class="wf-btn ghost">Set as default delivery</span> · <span class="wf-btn ghost" style="color:#c62828">Delete</span></div>
+              </div>
+            </div>
+            <div class="wf-grid g2" style="margin-top:14px">
+              <div class="wf-box"><b>Dashboard</b>Greeting, the last 3 orders with status badges, default addresses, and a quick "Reorder".</div>
+              <div class="wf-box"><b>Orders → detail</b>Lines, totals, a status timeline, addresses and a Reorder button. PDF invoice comes later.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="wf-frame">
+      <div class="wf-caption"><span><b>/register</b> · addresses are required for registered customers</span><span class="stack-bs">Bootstrap</span></div>
+      <div class="wf-body">
+        <div class="wf-grid g3">
+          <div class="wf-box"><b>1. Account</b>Email*, password* (strength hint), first and last name*, phone</div>
+          <div class="wf-box"><b>2. Billing address</b>Company, VAT ID (optional, B2B), street*, house no.*, postcode*, city*, country*</div>
+          <div class="wf-box"><b>3. Delivery</b><i data-lucide="square-check"></i> "Same as billing" (default). Unticking shows a second address form.</div>
+        </div>
+        <div class="muted" style="margin-top:6px">One Twig form rendered with the <code>bootstrap_5_layout</code> theme, so errors appear as <code>.is-invalid</code> + <code>.invalid-feedback</code> under each field.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== ADMIN ============================== -->
+  <section class="panel" id="panel-admin" hidden>
+    <div class="panel-head">
+      <h2>Admin pages</h2>
+      <p>Vue SPA with PrimeVue on a neutral platform theme. Desktop-first.</p>
+    </div>
+    <div class="wf-frame">
+      <div class="wf-caption"><span><b>/</b> · Dashboard</span><span class="stack-vue">Vue SPA</span></div>
+      <div class="admin-shell">
+        <div class="admin-side">
+          <div style="font-weight:800;color:#fff;padding:0 8px 10px">MyOil's Admin</div>
+          <div class="it on"><i data-lucide="layout-dashboard"></i> Dashboard</div><div class="it"><i data-lucide="receipt"></i> Orders</div><div class="it"><i data-lucide="package"></i> Catalog</div>
+          <div class="sub">Products</div><div class="sub">Categories</div><div class="sub">Attributes</div>
+          <div class="it"><i data-lucide="users"></i> Customers</div><div class="it"><i data-lucide="tag"></i> Coupons</div>
+          <div class="sep"></div>
+          <div class="it"><i data-lucide="settings"></i> Settings</div>
+          <div class="grp">Super-admin</div>
+          <div class="it"><i data-lucide="globe"></i> Platform</div>
+        </div>
+        <div>
+          <div class="admin-top"><span class="switcher"><i data-lucide="droplet"></i> MyOil's Auto <i data-lucide="chevron-down"></i></span><span class="wf-search" style="max-width:300px"><i data-lucide="search"></i> Search orders, products, customers…</span><span><i data-lucide="user"></i> Olha <i data-lucide="chevron-down"></i></span></div>
+          <div class="wf-body">
+            <div class="wf-grid g4">
+              <div class="kpi"><div class="muted">Orders today</div><div class="v">12</div></div>
+              <div class="kpi"><div class="muted">Revenue today</div><div class="v">€1,284</div></div>
+              <div class="kpi"><div class="muted">Awaiting payment</div><div class="v">3</div></div>
+              <div class="kpi"><div class="muted">Ready to ship</div><div class="v">5</div></div>
+            </div>
+            <div class="wf-grid g2" style="margin-top:12px">
+              <div class="wf-box"><b>Orders by status</b><div class="wf-img" style="min-height:90px">bar chart</div></div>
+              <div class="wf-box"><b>Revenue, last 30 days</b><div class="wf-img" style="min-height:90px">line chart</div></div>
+            </div>
+            <div class="wf-grid g2" style="margin-top:12px">
+              <div class="wf-box" style="background:#fff"><b>Low stock (threshold 10, store setting)</b>
+                <table class="wf-table"><tr><td>Synth Pro 5W-30 · 208 L</td><td class="bad">2</td></tr><tr><td>ATF Multi · 20 L</td><td class="bad">6</td></tr></table></div>
+              <div class="wf-box" style="background:#fff"><b>Latest orders</b>
+                <table class="wf-table"><tr><td>AUTO-000124</td><td><span class="b green">Paid</span></td><td>€67.86</td></tr>
+                  <tr><td>AUTO-000123</td><td><span class="b amber">Awaiting payment</span></td><td>€189.00</td></tr>
+                  <tr><td>AUTO-000122</td><td><span class="b indigo">Shipped</span></td><td>€1,489.00</td></tr></table></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="wf-frame">
+      <div class="wf-caption"><span><b>/orders/{publicId}</b> · Order detail</span><span class="stack-vue">Vue SPA</span></div>
+      <div class="wf-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <span><b style="font-size:17px">Order AUTO-000124</b> <span class="b green">Paid</span> <span class="muted">placed 21 Sep 2026, 14:02 · guest</span></span>
+          <span><span class="wf-btn primary">Start processing</span> <span class="wf-btn danger">Cancel order…</span></span>
+        </div>
+        <div class="muted" style="margin:4px 0 10px">Only the transitions allowed by <code>workflow.can()</code> are shown as buttons. "Cancel order…" opens the confirmation dialog.</div>
+        <div class="wf-grid side-r">
+          <div>
+            <table class="wf-table"><tr><th>SKU</th><th>Product</th><th>Qty</th><th>Net</th><th>VAT</th><th>Gross</th></tr>
+              <tr><td>SP530-5</td><td>Synth Pro 5W-30 · 5 L</td><td>1</td><td>€41.28</td><td>21.00%</td><td>€49.95</td></tr>
+              <tr><td>G12-5</td><td>Coolant G12++ · 5 L</td><td>2</td><td>€14.80</td><td>21.00%</td><td>€17.91</td></tr></table>
+            <div style="text-align:right;margin-top:6px">Net €56.08 · VAT €11.78 · Shipping €0.00 · <b>Total €67.86</b></div>
+            <div class="wf-grid g2" style="margin-top:10px">
+              <div class="wf-box"><b>Billing</b>Garage De Vries · NL123456789B01<br>Keizersgracht 12, 1015 CX Amsterdam</div>
+              <div class="wf-box"><b>Delivery</b>Same as billing</div>
+            </div>
+            <div class="wf-box" style="margin-top:10px"><b>Payments</b>FakeGateway · €67.86 · <span class="b green">captured</span> · ref fake_7F3A…</div>
+          </div>
+          <div class="wf-box" style="background:#fff"><b>Timeline</b>
+            <div><i data-lucide="circle-dot"></i> 14:05 <strong>pay</strong> → paid <span class="muted">(system, webhook)</span></div>
+            <div><i data-lucide="circle-dot"></i> 14:02 <strong>checkout</strong> → payment_pending <span class="muted">(customer)</span></div>
+            <div><i data-lucide="circle-dot"></i> 13:55 created as draft</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== UI STANDARDS ============================== -->
+  <section class="panel" id="panel-ui" hidden>
+    <div class="panel-head">
+      <h2>UI standards</h2>
+      <p>One behaviour, two implementations. The Bootstrap/jQuery pages and the Vue/PrimeVue pages must look and act the same for feedback, forms and dialogs.</p>
+    </div>
+
+    <h3 class="section-title">1. Toast notifications</h3>
+    <div class="two-col">
+      <div>
+        <div class="toast success"><span class="ti"><i data-lucide="circle-check"></i></span><div><div class="t">Address saved</div><div class="muted">Your delivery address was updated.</div></div><span class="x"><i data-lucide="x"></i></span></div>
+        <div class="toast info"><span class="ti"><i data-lucide="info"></i></span><div><div class="t">Coupon applied</div><div class="muted">10% off your order.</div></div><span class="x"><i data-lucide="x"></i></span></div>
+        <div class="toast warn"><span class="ti"><i data-lucide="triangle-alert"></i></span><div><div class="t">Too many attempts</div><div class="muted">Please wait 45 seconds before trying again.</div></div><span class="x"><i data-lucide="x"></i></span></div>
+        <div class="toast error"><span class="ti"><i data-lucide="circle-x"></i></span><div><div class="t">Something went wrong</div><div class="muted">We couldn't save your changes. Reference: 7F3A-91C2</div></div><span class="x"><i data-lucide="x"></i></span></div>
+      </div>
+      <div class="table-wrap" style="margin-top:0">
+        <table>
+          <tr><th>Rule</th><th>Value</th></tr>
+          <tr><td>Position</td><td>top-right on desktop, top-centre on mobile</td></tr>
+          <tr><td>Success / info</td><td>auto-close after 4 s (paused while hovered)</td></tr>
+          <tr><td>Warning / error</td><td>stay until closed</td></tr>
+          <tr><td>Maximum visible</td><td>3; older ones are stacked away</td></tr>
+          <tr><td>Server flash messages</td><td>rendered as the same toasts after a redirect</td></tr>
+          <tr><td>Accessibility</td><td><code>role="status"</code> for success/info, <code>role="alert"</code> for errors</td></tr>
+          <tr><td>Bootstrap / jQuery</td><td>Bootstrap Toast + <code>notify(type, title, text)</code></td></tr>
+          <tr><td>Vue / PrimeVue</td><td>PrimeVue Toast + <code>useNotify()</code></td></tr>
+          <tr><td>Icons</td><td>Lucide: <code>circle-check</code> · <code>info</code> · <code>triangle-alert</code> · <code>circle-x</code>, close <code>x</code></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <h3 class="section-title">2. Form fields and validation</h3>
+    <div class="two-col">
+      <div class="wf-frame" style="margin-bottom:0"><div class="wf-body">
+        <div class="field"><label>Email <span class="req">*</span></label><div class="input">name@example.com</div><div class="muted">Default</div></div>
+        <div class="field"><label>Email <span class="req">*</span></label><div class="input focus">jan@</div><div class="muted">Focused (no error yet while typing)</div></div>
+        <div class="field"><label>Email <span class="req">*</span></label><div class="input invalid">jan@</div><div class="err">Enter a full email address, e.g. jan@example.com.</div></div>
+        <div class="field"><label>Email <span class="req">*</span></label><div class="input valid">jan@garage-devries.nl</div><div class="muted">Fixed: the red disappears straight away</div></div>
+      </div></div>
+      <div>
+        <ul style="margin:0;padding-left:18px">
+          <li><strong>Invalid field</strong>: red border + icon + <strong>short message directly under the field</strong> that says what to do.</li>
+          <li><strong>When checked</strong>: on blur and on submit. After the first error, it is re-checked while typing.</li>
+          <li><strong>Required</strong> fields are marked <code>*</code>. Optional ones say "(optional)" when most fields are required.</li>
+          <li><strong>After submit</strong>: focus and scroll to the first invalid field. Long forms (registration, checkout) also show an <strong>error summary</strong> with links to the fields.</li>
+          <li><strong>The server is the source of truth</strong> (Symfony Validator). The client repeats only simple checks. Server <code>violations</code> are mapped onto the same fields.</li>
+          <li><strong>Submit button</strong>: shows a spinner and is disabled while sending, so a form can't be submitted twice.</li>
+          <li>Bootstrap: <code>bootstrap_5_layout</code> form theme → <code>.is-invalid</code> + <code>.invalid-feedback</code>. Vue: a shared <code>&lt;FormField&gt;</code> component using PrimeVue <code>invalid</code> + <code>&lt;Message size="small" severity="error"&gt;</code>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 class="section-title">3. Confirmation dialog (all destructive actions)</h3>
+    <div class="two-col">
+      <div class="backdrop"><div class="modal">
+        <div class="mh">Cancel order AUTO-000124?</div>
+        <div class="mb">The customer's payment of €67.86 will be refunded and the stock will be released. This can't be undone.</div>
+        <div class="mf"><span class="wf-btn secondary">Keep order</span><span class="wf-btn danger">Cancel order</span></div>
+      </div></div>
+      <ul style="margin:0;padding-left:18px">
+        <li>It is <strong>required</strong> for every destructive action: delete, cancel, refund, remove, deactivate, revoke access.</li>
+        <li><strong>Title</strong> = action + object ("Delete address 'Workshop'?"). <strong>Body</strong> = the consequence in one or two sentences.</li>
+        <li><strong>Buttons</strong>: the safe choice on the left ("Keep …"). The destructive button on the right, in red, <strong>labelled with the verb</strong> (never just "OK").</li>
+        <li><strong>Esc</strong>, clicking outside and <i data-lucide="x"></i> all choose the safe option. Focus starts on the safe button.</li>
+        <li>For severe platform actions (deactivating a store, deleting a staff user), the user must <strong>type the name</strong> to confirm.</li>
+        <li>Bootstrap: one reusable modal + <code>confirmAction({title, body, confirmLabel})</code>, which returns a Promise. Vue: PrimeVue ConfirmDialog + <code>useConfirmAction()</code> with the same options.</li>
+      </ul>
+    </div>
+
+    <h3 class="section-title">4. Unsaved changes guard</h3>
+    <div class="two-col">
+      <div class="backdrop"><div class="modal">
+        <div class="mh">Leave without saving?</div>
+        <div class="mb">You have unsaved changes on this page. If you leave now, they will be lost.</div>
+        <div class="mf"><span class="wf-btn secondary">Stay on page</span><span class="wf-btn danger">Leave without saving</span></div>
+      </div></div>
+      <ul style="margin:0;padding-left:18px">
+        <li>It is active on every <strong>edit form</strong>: admin edit screens, account profile and addresses, checkout address step, contact form.</li>
+        <li>A form becomes "dirty" when a value differs from what was loaded, and becomes clean again after a successful save or when the change is reverted.</li>
+        <li>It catches <strong>in-app navigation</strong> (links, menu, back button in the SPA, store switcher) with the standard dialog.</li>
+        <li><strong>Closing or reloading the tab</strong> uses the browser's own <code>beforeunload</code> dialog. Browsers don't allow custom text there, and that can't be changed.</li>
+        <li>Vue: <code>useUnsavedChanges(isDirty)</code> → <code>onBeforeRouteLeave</code> + <code>beforeunload</code>. Bootstrap: <code>&lt;form data-unsaved-guard&gt;</code> + jQuery link interception + <code>beforeunload</code>.</li>
+      </ul>
+    </div>
+
+    <h3 class="section-title">5. Icons</h3>
+    <div class="two-col">
+      <div class="wf-frame" style="margin-bottom:0"><div class="wf-body" style="display:flex;flex-wrap:wrap;gap:14px;font-size:14px">
+        <span><i data-lucide="circle-check" style="color:#2e7d32"></i> success</span><span><i data-lucide="info" style="color:#1d6fd1"></i> info</span>
+        <span><i data-lucide="triangle-alert" style="color:#c77c00"></i> warning</span><span><i data-lucide="circle-x" style="color:#c62828"></i> error</span>
+        <span><i data-lucide="trash-2"></i> delete</span><span><i data-lucide="pencil"></i> edit</span><span><i data-lucide="plus"></i> add</span>
+        <span><i data-lucide="search"></i> search</span><span><i data-lucide="shopping-cart"></i> cart</span><span><i data-lucide="user"></i> account</span>
+        <span><i data-lucide="file-text"></i> document</span><span><i data-lucide="truck"></i> shipping</span><span><i data-lucide="loader-circle"></i> loading</span>
+      </div></div>
+      <ul style="margin:0;padding-left:18px">
+        <li><strong>No emojis anywhere</strong> in the UI, templates, emails or translation strings.</li>
+        <li><strong>One icon library: Lucide</strong> (ISC license, SVG). Vue: <code>lucide-vue-next</code>. Twig: <code>symfony/ux-icons</code> → <code>{{ ux_icon('lucide:circle-check') }}</code>, rendered inline and locked into the repo with <code>ux:icons:lock</code>.</li>
+        <li>PrimeVue's built-in PrimeIcons are replaced by Lucide inside our wrapper components (toast, dialog, paginator…), and the <code>primeicons</code> font is not loaded.</li>
+        <li>One <strong>semantic icon map</strong> (<code>success → circle-check</code>, <code>delete → trash-2</code>…) is shared by both stacks, so the same action always has the same icon.</li>
+        <li>Icon-only buttons always have an <code>aria-label</code>. Decorative icons get <code>aria-hidden="true"</code>.</li>
+      </ul>
+    </div>
+
+    <h3 class="section-title">6. Loading and empty states</h3>
+    <div class="two-col">
+      <div class="wf-frame" style="margin-bottom:0"><div class="wf-body">
+        <b>Loading (skeleton)</b><div class="skel" style="width:60%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>
+        <div style="margin-top:10px"><span class="wf-btn primary" style="opacity:.7"><i data-lucide="loader-circle"></i> Saving…</span> <span class="muted">button spinner, disabled</span></div>
+        <hr style="border:0;border-top:1px solid var(--wf-line);margin:12px 0">
+        <div style="text-align:center"><div class="empty-ic"><i data-lucide="package-open"></i></div><b>No orders yet</b><div class="muted">When you place an order, it will appear here.</div><span class="wf-btn primary" style="margin-top:6px">Browse catalog</span></div>
+      </div></div>
+      <ul style="margin:0;padding-left:18px">
+        <li><strong>Page content</strong>: skeleton placeholders in the shape of the content, not a full-page spinner.</li>
+        <li><strong>Actions</strong>: a spinner on the clicked button, which is disabled until the response arrives.</li>
+        <li>Loading shorter than 300 ms shows no skeleton, to avoid flicker.</li>
+        <li><strong>Empty state</strong>: icon + one-line title + one explanation line + one action.</li>
+        <li><strong>Empty search or filter result</strong>: "No products match these filters" + a "Clear filters" button.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================== ERRORS ============================== -->
+  <section class="panel" id="panel-errors" hidden>
+    <div class="panel-head">
+      <h2>Error handling: every case has a defined reaction</h2>
+      <p>The Symfony API always answers errors with <code>application/problem+json</code> (RFC 7807). One shared client helper
+        (<code>ApiClient</code> in Vue, <code>api()</code> in jQuery) maps each case below to the same user-visible behaviour. An unknown status falls back by class (4xx or 5xx), so there is no unhandled error.</p>
+    </div>
+    <div class="table-wrap" style="margin-top:0">
+      <table>
+        <thead><tr><th>Situation</th><th>Status</th><th>Twig / Bootstrap pages</th><th>Vue pages &amp; admin SPA</th><th>Logged</th></tr></thead>
+        <tbody>
+          <tr><td>Validation failed</td><td><code>422</code></td><td>Red fields + message under each (and a summary on long forms)</td><td><code>violations[]</code> mapped to fields. A toast only for violations with no matching field</td><td>no</td></tr>
+          <tr><td>Malformed request</td><td><code>400</code></td><td>Error toast: "Something is wrong with this request"</td><td>Error toast</td><td>warning</td></tr>
+          <tr><td>Not logged in / session expired</td><td><code>401</code></td><td>Redirect to login with a return URL</td><td>Modal "Your session expired, please log in again". Unsaved form data is kept in session storage and restored after login</td><td>no</td></tr>
+          <tr><td>No permission</td><td><code>403</code></td><td>403 page</td><td>Toast; the admin shows an in-app "No access" view</td><td>info</td></tr>
+          <tr><td>Not found</td><td><code>404</code></td><td>404 page with search</td><td>In-app "Not found" state with a link back</td><td>no</td></tr>
+          <tr><td>Wrong method</td><td><code>405</code></td><td>404 page</td><td>Error toast</td><td>warning</td></tr>
+          <tr><td>Conflict / stale data (optimistic lock, stock just sold out, workflow transition no longer allowed)</td><td><code>409</code></td><td>Toast + reload of the page</td><td>Modal "This was changed in the meantime" with a <b>Reload</b> button. The user's input is kept where possible</td><td>info</td></tr>
+          <tr><td>CSRF token expired</td><td><code>419</code>*</td><td>Page reloads with a toast "Your session expired, please try again". Form input is kept</td><td>Fetch a new token and silently retry once. If that fails, show a toast</td><td>info</td></tr>
+          <tr><td>Payload too large</td><td><code>413</code></td><td>Error toast with the limit</td><td>Error toast with the limit</td><td>warning</td></tr>
+          <tr><td><b>Too many requests</b></td><td><code>429</code></td><td>429 page, or inline under the form: "Too many attempts, try again in <b>45 s</b>" with a live countdown from <code>Retry-After</code>. Submit stays disabled until then</td><td>Warning toast with a countdown. Buttons are disabled until <code>Retry-After</code>. GET requests retry once automatically afterwards</td><td>warning</td></tr>
+          <tr><td>Server error</td><td><code>500</code></td><td>500 page with a <b>reference code</b> (request ID)</td><td>Error toast "Something went wrong (ref 7F3A-91C2)" + Retry button</td><td><b>error</b> + request ID</td></tr>
+          <tr><td>Maintenance / upstream down / timeout</td><td><code>502 503 504</code></td><td>503 maintenance page</td><td>Toast; GET requests are retried automatically with backoff (1 s, 3 s, 9 s), then a Retry button</td><td>error</td></tr>
+          <tr><td>Browser offline</td><td>—</td><td>Banner "You're offline"</td><td>Persistent banner "You're offline". Submits are disabled and re-enabled when the connection returns</td><td>no</td></tr>
+          <tr><td>Client timeout (&gt; 15 s)</td><td>—</td><td>—</td><td>Request aborted + toast with Retry</td><td>warning</td></tr>
+          <tr><td>Unexpected JavaScript error</td><td>—</td><td><code>window.onerror</code> → generic error toast</td><td><code>app.config.errorHandler</code> → generic error toast + report to the backend log</td><td>error</td></tr>
+          <tr><td>Payment failed or cancelled at the gateway</td><td>—</td><td colspan="2">Back to checkout step 5 with an alert "Payment was not completed. You can try again or choose another method." The order stays <code>payment_pending</code></td><td>info</td></tr>
+          <tr><td><b>Any other status</b></td><td>4xx / 5xx</td><td>Generic 4xx page or 500 page</td><td>Generic toast by class</td><td>yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">* 419 is not an official HTTP status. Symfony's <code>InvalidCsrfTokenException</code> is mapped to it so the client can tell it apart from a real 403.</p>
+
+    <div class="two-col" style="margin-top:22px">
+      <div>
+        <h3 class="section-title">Rate limits (Symfony RateLimiter)</h3>
+        <div class="table-wrap" style="margin-top:0">
+          <table>
+            <tr><th>Endpoint</th><th>Limit</th><th>Key</th></tr>
+            <tr><td>Login (customer and staff)</td><td>5 / 15 min</td><td>IP + email (Symfony <code>login_throttling</code>)</td></tr>
+            <tr><td>Registration</td><td>5 / hour</td><td>IP</td></tr>
+            <tr><td>Password reset request</td><td>3 / hour</td><td>IP + email</td></tr>
+            <tr><td>Contact form</td><td>3 / 10 min</td><td>IP</td></tr>
+            <tr><td>Apply coupon</td><td>10 / 10 min</td><td>session (stops code guessing)</td></tr>
+            <tr><td>Place order / start payment</td><td>10 / 10 min</td><td>session</td></tr>
+            <tr><td>Storefront API reads</td><td>300 / min</td><td>IP (sliding window)</td></tr>
+            <tr><td>Admin API</td><td>600 / min</td><td>staff user</td></tr>
+            <tr><td>Payment webhooks</td><td>not rate-limited</td><td>protected by signature + deduplication instead</td></tr>
+          </table>
+        </div>
+        <p class="note">Every 429 carries <code>Retry-After</code> and a problem+json body. Limits are configuration values and can be tuned without code changes.</p>
+      </div>
+      <div>
+        <h3 class="section-title">Error page (branded, Bootstrap)</h3>
+        <div class="wf-frame" style="margin-bottom:8px">
+          <div class="wf-header"><span class="wf-logo"><i data-lucide="droplet"></i>MyOil's Auto</span><span class="wf-search"><i data-lucide="search"></i> Search…</span></div>
+          <div class="wf-body" style="text-align:center;padding:26px 14px">
+            <div style="font-size:34px;font-weight:800;color:var(--brand-primary)">404</div>
+            <b>We can't find this page</b>
+            <div class="muted" style="margin:4px 0 10px">It may have moved, or the link is wrong. Try searching or go back to the shop.</div>
+            <span class="wf-btn primary">Back to home</span> <span class="wf-btn secondary">Browse catalog</span>
+          </div>
+        </div>
+        <ul style="margin:0;padding-left:18px;font-size:14px">
+          <li>Pages: 404, 403, 419, 429 (with countdown), 500 (with reference code), 503, and "Store not found" in the neutral platform style.</li>
+          <li>Every response carries an <code>X-Request-Id</code>, which is added to every log line and shown as the reference code.</li>
+          <li>Error templates never show stack traces outside <code>dev</code>.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>These sketches are low-fidelity: they fix layout and content, not the final visual design. Update them when a page's content changes.</footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@1.47.0/dist/umd/lucide.min.js"></script>
+<script src="_viewer.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

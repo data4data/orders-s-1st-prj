@@ -1,0 +1,4 @@
+# Vite integration. Three isolated entries are defined in vite.config.js:
+# "bootstrap" (Twig + Bootstrap + jQuery), "storefront" and "admin" (Vue + PrimeVue + Tailwind).
+pentatrion_vite:
+    build_directory: build

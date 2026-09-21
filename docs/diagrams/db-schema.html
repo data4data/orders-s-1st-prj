@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyOil's — Database Schema</title>
+<link rel="stylesheet" href="_viewer.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-head">
+    <div>
+      <h1>Database schema</h1>
+      <p>One shared MySQL 8 database for every MyOil's store. <strong>Blue tables</strong> carry a
+        <code>store_id</code> and are scoped automatically by the Doctrine <code>TenantFilter</code>;
+        <strong>grey tables</strong> belong to the platform. Planned design, not generated from migrations yet.</p>
+    </div>
+    <nav><a href="architecture.html">Architecture diagrams →</a> &nbsp;·&nbsp; <a href="pages.html">Pages &amp; UI standards →</a></nav>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button data-target="overview" role="tab">Overview</button>
+    <button data-target="platform" role="tab">Platform &amp; tenancy</button>
+    <button data-target="catalog" role="tab">Catalog</button>
+    <button data-target="orders" role="tab">Customers, orders &amp; payments</button>
+    <button data-target="conventions" role="tab">Conventions</button>
+  </div>
+
+  <!-- ============================== OVERVIEW ============================== -->
+  <section class="panel" id="panel-overview" hidden>
+    <div class="panel-head">
+      <h2>All tables and how they relate</h2>
+      <p>Tables grouped by area, without columns (the other tabs have the full column lists). Every blue table also references
+        <code>store</code> through <code>store_id</code>. Those lines are left out to keep the picture readable.</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Overview</span><span class="spacer"></span>
+          <button data-zoom="out" title="Zoom out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in" title="Zoom in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+flowchart TB
+  subgraph PLATFORM["Platform — shared by all stores"]
+    direction LR
+    country[country]
+    store[store]
+    store_domain[store_domain]
+    staff_user[staff_user]
+    store_membership[store_membership]
+    tax_category[tax_category]
+    tax_rate[tax_rate]
+  end
+  subgraph CATALOG["Catalog — per store"]
+    direction LR
+    category[category]
+    product_category[product_category]
+    product[product]
+    product_variant[product_variant]
+    attribute[attribute]
+    attribute_option[attribute_option]
+    product_attribute_value[product_attribute_value]
+    product_document[product_document]
+    product_image[product_image]
+  end
+  subgraph SALES["Customers &amp; orders — per store"]
+    direction LR
+    customer[customer]
+    customer_address[customer_address]
+    orders[orders]
+    order_item[order_item]
+    order_status_history[order_status_history]
+    coupon[coupon]
+    shipping_method[shipping_method]
+    store_sequence[store_sequence]
+    contact_message[contact_message]
+  end
+  subgraph PAYMENTS["Payments — per store"]
+    direction LR
+    payment[payment]
+    payment_refund[payment_refund]
+    payment_webhook_event[payment_webhook_event]
+  end
+
+  country -->|1:n| store
+  store -->|1:n| store_domain
+  staff_user -->|1:n| store_membership
+  store -->|1:n| store_membership
+  country -->|1:n| tax_rate
+  tax_category -->|1:n| tax_rate
+
+  category -->|parent 1:n| category
+  category -->|n:m| product_category
+  product -->|n:m| product_category
+  product -->|1:n| product_variant
+  product -->|1:n| product_attribute_value
+  attribute -->|1:n| attribute_option
+  attribute_option -.->|0..1:n| product_attribute_value
+  product -->|1:n| product_document
+  product -->|1:n| product_image
+
+  customer -->|"1:n (≥1 billing, ≥1 delivery)"| customer_address
+  customer_address -.->|default billing / delivery| customer
+  customer -.->|0..1:n guest allowed| orders
+  orders -->|1:n| order_item
+  orders -->|1:n| order_status_history
+  coupon -.->|0..1:n| orders
+  shipping_method -.->|0..1:n| orders
+
+  payment -->|1:n| payment_refund
+  payment_webhook_event -.->|by external ref| payment
+
+  PLATFORM ==>|"tax_category → product"| CATALOG
+  CATALOG ==>|"product_variant → order_item (snapshot)"| SALES
+  PLATFORM ==>|"store → store_sequence · tax_category → shipping_method"| SALES
+  SALES ==>|"orders → payment (1:n attempts)"| PAYMENTS
+
+  classDef platform fill:#eceff3,stroke:#7b8594,color:#1c2330
+  classDef tenant fill:#dbe8fd,stroke:#2f62d0,color:#1c2330
+  class country,store,store_domain,staff_user,store_membership,tax_category,tax_rate platform
+  class category,product_category,product,product_variant,attribute,attribute_option,product_attribute_value,product_document,product_image tenant
+  class customer,customer_address,orders,order_item,order_status_history,coupon,shipping_method,store_sequence,contact_message tenant
+  class payment,payment_refund,payment_webhook_event tenant
+  style PLATFORM fill:transparent,stroke:#8a94a6,stroke-dasharray:4 3
+  style CATALOG fill:transparent,stroke:#6f9bff,stroke-dasharray:4 3
+  style SALES fill:transparent,stroke:#6f9bff,stroke-dasharray:4 3
+  style PAYMENTS fill:transparent,stroke:#6f9bff,stroke-dasharray:4 3
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>Legend</h3>
+        <ul class="legend">
+          <li><span class="swatch platform"></span><span>Platform table (no tenant filter)</span></li>
+          <li><span class="swatch tenant"></span><span>Tenant table: has <code>store_id</code>, auto-filtered</span></li>
+        </ul>
+        <h3>Reading the lines</h3>
+        <ul>
+          <li><code>1:n</code>: one parent, many children</li>
+          <li><code>n:m</code>: many-to-many through a join table</li>
+          <li>Dashed line: optional (nullable FK) or logical link</li>
+          <li>Thick arrows between groups name the table-level link they stand for.</li>
+          <li>The detail tabs use crow's-foot notation with full columns.</li>
+        </ul>
+        <h3>Key choices</h3>
+        <ul>
+          <li>The <strong>cart is a <code>draft</code> order</strong>, so there are no separate cart tables.</li>
+          <li><strong>Customers belong to one store</strong>. The same email can register in several stores.</li>
+          <li><strong>Staff are global</strong> and get access to stores through <code>store_membership</code>.</li>
+          <li><strong>VAT is platform-wide</strong>, per country and category, with validity dates. The store's country decides the rate.</li>
+          <li><strong>Several stores per country</strong> are allowed. The demo has three MyOil's shops in NL.</li>
+          <li><strong>Each store has its own branding</strong> (name, logo, colours) plus its own low-stock threshold.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== PLATFORM ============================== -->
+  <section class="panel" id="panel-platform" hidden>
+    <div class="panel-head">
+      <h2>Platform &amp; tenancy</h2>
+      <p>Tables that exist once for the whole platform: stores and how they are reached, staff and their
+        per-store roles, countries and the VAT rates that apply over time.</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Platform &amp; tenancy</span><span class="spacer"></span>
+          <button data-zoom="out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+erDiagram
+  country {
+    char code PK "ISO 3166-1 alpha-2, e.g. NL"
+    varchar name
+    boolean is_eu
+  }
+  store {
+    int id PK
+    binary public_id UK "UUID v7"
+    varchar code UK "myoils-auto"
+    varchar name "MyOil's Auto"
+    char country_code FK "decides VAT; many stores per country"
+    char currency_code "ISO 4217, one per store"
+    varchar default_locale "en now; nl later"
+    varchar order_number_prefix "AUTO"
+    varchar payment_gateway_code "fake; resolved by GatewayRegistry"
+    varchar contact_email
+    varchar logo_url "https URL"
+    varchar favicon_url "https URL"
+    char primary_color "hex, e.g. #0F2742"
+    char accent_color "hex, e.g. #F2A900"
+    int low_stock_threshold "per store"
+    boolean is_active
+    datetime created_at
+  }
+  store_domain {
+    int id PK
+    int store_id FK
+    varchar host UK "lower-case, unique platform-wide"
+    boolean is_primary
+  }
+  store_sequence {
+    int store_id PK, FK
+    varchar name PK "order_number"
+    int next_value "row-locked when used"
+  }
+  staff_user {
+    int id PK
+    binary public_id UK
+    varchar email UK
+    varchar password "hashed"
+    varchar first_name
+    varchar last_name
+    boolean is_super_admin "may switch to All stores"
+    datetime last_login_at
+    datetime created_at
+  }
+  store_membership {
+    int id PK
+    int staff_user_id FK "UK with store_id"
+    int store_id FK
+    varchar role "owner | manager | staff"
+    datetime created_at
+  }
+  tax_category {
+    int id PK
+    varchar code UK "standard | reduced | zero"
+    varchar name
+  }
+  tax_rate {
+    int id PK
+    char country_code FK "UK with category + valid_from"
+    int tax_category_id FK
+    decimal rate "DECIMAL(5,2), e.g. 21.00"
+    date valid_from
+    date valid_to "NULL = still valid"
+  }
+
+  country ||--o{ store : "located in"
+  store ||--|{ store_domain : "reachable at"
+  store ||--o{ store_sequence : "numbers with"
+  store ||--o{ store_membership : "staffed via"
+  staff_user ||--o{ store_membership : "member of"
+  country ||--o{ tax_rate : "sets VAT for"
+  tax_category ||--o{ tax_rate : "priced by"
+
+  classDef platform fill:#eceff3,stroke:#7b8594,color:#1c2330
+  classDef tenant fill:#dbe8fd,stroke:#2f62d0,color:#1c2330
+  class country,store,store_domain,staff_user,store_membership,tax_category,tax_rate platform
+  class store_sequence tenant
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>Tenant resolution</h3>
+        <ul>
+          <li>Each request's <code>Host</code> header is looked up in <code>store_domain.host</code>. An unknown host returns 404 (fail closed).</li>
+          <li>A store can have several hosts, such as <code>myoils-auto.shop.test</code> and later <code>myoils-auto.nl</code>. One of them is the primary.</li>
+          <li>The admin runs at <code>admin.shop.test</code> and takes the store from the <strong>store switcher</strong> kept in the session.</li>
+        </ul>
+        <h3>Access</h3>
+        <ul>
+          <li><code>store_membership.role</code> maps to Symfony roles for the selected store only.</li>
+          <li><code>is_super_admin</code> may pick "All stores", which disables the filter explicitly (read-only by default).</li>
+        </ul>
+        <h3>VAT over time</h3>
+        <ul>
+          <li>The rate is chosen by <code>(store.country_code, product.tax_category, order date)</code>.</li>
+          <li>Rates are stored as <code>DECIMAL(5,2)</code>, for example <code>21.00</code> or <code>5.50</code>. The domain reads them as exact decimal strings, never as floats.</li>
+          <li>Past orders keep their own snapshot and never re-read this table.</li>
+        </ul>
+        <div class="callout">Order numbers come from <code>store_sequence</code> with <code>SELECT … FOR UPDATE</code>. This gives gap-tolerant, per-store numbers such as <code>AUTO-000123</code>.</div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== CATALOG ============================== -->
+  <section class="panel" id="panel-catalog" hidden>
+    <div class="panel-head">
+      <h2>Catalog</h2>
+      <p>Lubricant products (engine, industrial and agricultural oils, greases). A product is sold as
+        <strong>package-size variants</strong> (1 L, 5 L, 20 L, 60 L, 208 L drum). Technical specs such as SAE viscosity,
+        ISO VG, API/ACEA and OEM approvals are filterable attributes.</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Catalog</span><span class="spacer"></span>
+          <button data-zoom="out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+erDiagram
+  category {
+    int id PK
+    int store_id FK
+    int parent_id FK "self; NULL = root"
+    varchar slug "UK with store_id"
+    varchar name
+    text description
+    int position
+    boolean is_active
+  }
+  product {
+    int id PK
+    binary public_id UK
+    int store_id FK
+    int tax_category_id FK
+    varchar slug "UK with store_id"
+    varchar name "MyOil's Synth Pro 5W-30"
+    varchar brand "MyOil's"
+    text description
+    boolean is_active
+    datetime created_at
+    datetime updated_at
+  }
+  product_category {
+    int product_id PK, FK
+    int category_id PK, FK
+  }
+  product_variant {
+    int id PK
+    binary public_id UK
+    int store_id FK
+    int product_id FK
+    varchar sku "UK with store_id"
+    varchar name "5 L"
+    int volume_ml
+    int weight_g "used by shipping"
+    int price_net "minor units, net of VAT"
+    int on_hand "physical stock"
+    int reserved "held by payment_pending orders"
+    boolean is_active
+    int version "optimistic lock"
+  }
+  attribute {
+    int id PK
+    int store_id FK
+    varchar code "sae_viscosity, iso_vg, spec"
+    varchar name
+    varchar type "select | multiselect | number | text"
+    varchar unit "e.g. cSt"
+    boolean is_filterable
+    int position
+  }
+  attribute_option {
+    int id PK
+    int store_id FK
+    int attribute_id FK
+    varchar value "5W-30, ISO VG 46, ACEA C3"
+    int position
+  }
+  product_attribute_value {
+    int id PK
+    int store_id FK
+    int product_id FK
+    int attribute_id FK
+    int attribute_option_id FK "select types"
+    varchar value_text "text types"
+    decimal value_number "number types"
+  }
+  product_document {
+    int id PK
+    int store_id FK
+    int product_id FK
+    varchar type "sds | tds | approval"
+    varchar title
+    varchar locale
+    varchar file_path
+    varchar mime_type
+    int size_bytes
+    datetime created_at
+  }
+  product_image {
+    int id PK
+    int store_id FK
+    int product_id FK
+    int product_variant_id FK "NULL = all pack sizes"
+    varchar url "https URL, no upload yet"
+    varchar alt_text
+    int position
+  }
+  tax_category {
+    int id PK
+    varchar code UK
+  }
+
+  category |o--o{ category : "parent of"
+  category ||--o{ product_category : ""
+  product ||--o{ product_category : ""
+  tax_category ||--o{ product : "taxes"
+  product ||--|{ product_variant : "sold as"
+  product ||--o{ product_attribute_value : "described by"
+  attribute ||--o{ attribute_option : "offers"
+  attribute ||--o{ product_attribute_value : ""
+  attribute_option |o--o{ product_attribute_value : ""
+  product ||--o{ product_document : "documented by"
+  product ||--o{ product_image : "shown by"
+  product_variant |o--o{ product_image : "pack-specific photo"
+
+  classDef platform fill:#eceff3,stroke:#7b8594,color:#1c2330
+  classDef tenant fill:#dbe8fd,stroke:#2f62d0,color:#1c2330
+  class tax_category platform
+  class category,product,product_category,product_variant,attribute,attribute_option,product_attribute_value,product_document,product_image tenant
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>Inventory</h3>
+        <ul>
+          <li>The number that can be sold is <code>on_hand − reserved</code>. A DB check enforces <code>reserved ≤ on_hand</code>.</li>
+          <li><strong>checkout</strong> (→ payment_pending): <code>reserved += qty</code></li>
+          <li><strong>pay</strong> (→ paid): <code>on_hand −= qty</code>, <code>reserved −= qty</code></li>
+          <li><strong>cancel</strong> before payment: <code>reserved −= qty</code></li>
+          <li>The rules live in the pure <code>Domain\Inventory</code> policy. The <code>version</code> column prevents lost updates.</li>
+        </ul>
+        <h3>Prices</h3>
+        <ul>
+          <li>Prices are entered <strong>net</strong> in minor units, in the store currency.</li>
+          <li>Gross is calculated as <code>net × (1 + rate)</code> by <code>Domain\Pricing</code>. It is never stored on the catalog.</li>
+        </ul>
+        <h3>Specs &amp; documents</h3>
+        <ul>
+          <li>Attributes are per store and drive the PrimeVue catalog filters.</li>
+          <li><code>product_category</code> is a plain join table. It is protected through its parents, which are both tenant-filtered.</li>
+          <li>Safety data sheets (SDS) and technical data sheets (TDS) are attached as <code>product_document</code>.</li>
+          <li>Images are <strong>links</strong> (<code>https://</code> URLs) in <code>product_image</code>. A row with a <code>product_variant_id</code> shows only for that pack size.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== ORDERS ============================== -->
+  <section class="panel" id="panel-orders" hidden>
+    <div class="panel-head">
+      <h2>Customers, orders &amp; payments</h2>
+      <p>The order doubles as the cart while in <code>draft</code>. At <code>checkout</code> it gets a number, and
+        prices, VAT and addresses are <strong>snapshotted</strong>, so later catalog or tax changes never alter it.</p>
+    </div>
+    <div class="layout">
+      <div class="card diagram-card">
+        <div class="toolbar"><span>Customers, orders &amp; payments</span><span class="spacer"></span>
+          <button data-zoom="out">−</button><button data-zoom="fit">Fit</button>
+          <button data-zoom="1"><span data-zoom-label>100%</span></button><button data-zoom="in">+</button></div>
+        <div class="viewport"><pre class="mermaid">
+erDiagram
+  customer {
+    int id PK
+    binary public_id UK
+    int store_id FK
+    varchar email "UK with store_id"
+    varchar password "hashed"
+    varchar first_name
+    varchar last_name
+    varchar phone
+    int default_billing_address_id FK "must be usable_for_billing"
+    int default_shipping_address_id FK "must be usable_for_shipping"
+    datetime created_at
+  }
+  customer_address {
+    int id PK
+    int store_id FK
+    int customer_id FK
+    varchar label
+    varchar first_name
+    varchar last_name
+    varchar company "B2B"
+    varchar vat_id "B2B; VIES check later"
+    varchar street
+    varchar house_number
+    varchar postcode
+    varchar city
+    char country_code FK
+    varchar phone
+    boolean usable_for_billing
+    boolean usable_for_shipping
+  }
+  orders {
+    int id PK
+    binary public_id UK "used in URLs"
+    int store_id FK
+    varchar order_number "UK with store_id; set at checkout"
+    int customer_id FK "NULL = guest"
+    varchar customer_email
+    varchar state "order workflow place"
+    char currency_code
+    int coupon_id FK
+    varchar coupon_code "snapshot"
+    int shipping_method_id FK
+    varchar shipping_method_name "snapshot"
+    char tax_country_code "snapshot"
+    int items_net
+    int discount_net
+    int shipping_net
+    int total_net
+    int total_tax
+    int total_gross
+    embedded billing_address "billing_* incl. company, vat_id"
+    embedded shipping_address "shipping_* columns"
+    datetime placed_at
+    datetime created_at
+    datetime updated_at
+    int version "optimistic lock"
+  }
+  order_item {
+    int id PK
+    int store_id FK
+    int order_id FK
+    int product_variant_id FK "NULL if variant deleted"
+    varchar sku "snapshot"
+    varchar product_name "snapshot"
+    varchar variant_name "snapshot"
+    int quantity
+    int unit_price_net "snapshot"
+    int discount_net "allocated share"
+    decimal tax_rate "snapshot, DECIMAL(5,2)"
+    int line_net
+    int line_tax
+    int line_gross
+  }
+  order_status_history {
+    int id PK
+    int store_id FK
+    int order_id FK
+    varchar transition "checkout, pay, ship"
+    varchar from_state
+    varchar to_state
+    varchar actor_type "staff | customer | system"
+    int actor_id "NULL for system"
+    varchar comment
+    datetime created_at
+  }
+  coupon {
+    int id PK
+    int store_id FK
+    varchar code "UK with store_id"
+    varchar type "percentage | fixed"
+    decimal percent "percentage type, DECIMAL(5,2)"
+    int amount "fixed type, minor units"
+    int min_order_net
+    datetime valid_from
+    datetime valid_to
+    int usage_limit "NULL = unlimited"
+    int times_used
+    boolean is_active
+  }
+  shipping_method {
+    int id PK
+    int store_id FK
+    varchar code
+    varchar name
+    varchar calculator "flat | weight_based | free_over_threshold"
+    json config "calculator parameters"
+    json allowed_countries "NULL = all countries"
+    int tax_category_id FK
+    boolean is_active
+    int position
+  }
+  payment {
+    int id PK
+    binary public_id UK
+    int store_id FK
+    int order_id FK
+    varchar gateway_code "fake"
+    varchar state "payment workflow place"
+    int amount
+    char currency_code
+    varchar external_reference "gateway session id"
+    varchar checkout_url
+    json metadata
+    datetime created_at
+    datetime updated_at
+  }
+  payment_refund {
+    int id PK
+    int store_id FK
+    int payment_id FK
+    int amount
+    varchar reason
+    varchar state "pending | succeeded | failed"
+    varchar external_reference
+    datetime created_at
+  }
+  payment_webhook_event {
+    int id PK
+    int store_id FK
+    varchar gateway_code "UK with external_event_id"
+    varchar external_event_id "idempotency key"
+    json payload
+    datetime processed_at
+    datetime created_at
+  }
+  contact_message {
+    int id PK
+    int store_id FK
+    varchar name
+    varchar email
+    varchar subject
+    text message
+    datetime created_at
+  }
+
+  customer ||--|{ customer_address : "saves"
+  customer }o--o| customer_address : "default billing / shipping"
+  customer |o--o{ orders : "places"
+  orders ||--o{ order_item : "contains"
+  orders ||--o{ order_status_history : "audited by"
+  coupon |o--o{ orders : "applied to"
+  shipping_method |o--o{ orders : "ships"
+  orders ||--o{ payment : "paid by"
+  payment ||--o{ payment_refund : "refunded by"
+  payment_webhook_event }o..o| payment : "matched by external ref"
+
+  classDef tenant fill:#dbe8fd,stroke:#2f62d0,color:#1c2330
+  class customer,customer_address,orders,order_item,order_status_history,coupon,shipping_method,payment,payment_refund,payment_webhook_event,contact_message tenant
+</pre></div>
+      </div>
+      <aside class="card notes">
+        <h3>Money</h3>
+        <ul>
+          <li>Every amount is an <strong>integer in minor units</strong> of <code>orders.currency_code</code>. Domain code wraps it in the <code>Money</code> value object.</li>
+          <li><code>total_gross = total_net + total_tax</code>. The domain rounds per line, then sums.</li>
+        </ul>
+        <h3>Address rules</h3>
+        <ul>
+          <li>One address row can serve <strong>both</strong> roles (<code>usable_for_billing</code> + <code>usable_for_shipping</code>). "Delivery same as billing" means one row with both flags.</li>
+          <li>A registered customer always has <strong>at least one billing and one delivery</strong> address. Both are required at registration, and deleting the last one of either kind is blocked.</li>
+          <li>Guests have no address book. They enter addresses at checkout and those go straight into the order snapshot.</li>
+          <li>B2B: <code>company</code> + <code>vat_id</code> are captured now. Reverse charge comes later through <code>TaxRateResolverInterface</code>.</li>
+        </ul>
+        <h3>Snapshots</h3>
+        <ul>
+          <li>Order lines copy SKU, names, net price and VAT rate at checkout.</li>
+          <li>Addresses are Doctrine embeddables stored as <code>billing_*</code> and <code>shipping_*</code> columns.</li>
+          <li>Guest checkout: <code>customer_id</code> is NULL and <code>customer_email</code> is required.</li>
+        </ul>
+        <h3>Payments</h3>
+        <ul>
+          <li>An order can have several payment attempts. One <strong>captured</strong> payment covering <code>total_gross</code> allows the order to move to <code>pay</code>.</li>
+          <li>Webhooks are stored first and deduplicated by <code>(gateway_code, external_event_id)</code>, then processed asynchronously.</li>
+        </ul>
+        <h3>Why the name <code>orders</code>?</h3>
+        <ul><li><code>order</code> is a reserved word in SQL.</li></ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== CONVENTIONS ============================== -->
+  <section class="panel" id="panel-conventions" hidden>
+    <div class="panel-head">
+      <h2>Conventions</h2>
+      <p>Rules that apply to every table, so new tables fit in without special cases.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Topic</th><th>Rule</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Primary keys</td><td><code>INT UNSIGNED AUTO_INCREMENT</code></td><td>Small, fast InnoDB indexes.</td></tr>
+          <tr><td>Public identifiers</td><td><code>public_id BINARY(16)</code> UUID v7 on store, product, variant, customer, orders, payment</td><td>Nothing guessable in URLs or API payloads. UUID v7 is time-ordered, so indexes stay compact.</td></tr>
+          <tr><td>Tenant column</td><td><code>store_id INT NOT NULL</code> with an FK to <code>store</code>. Composite indexes start with <code>store_id</code>.</td><td>Every filtered query hits an index prefix.</td></tr>
+          <tr><td>Uniqueness</td><td>Business keys are unique <em>per store</em>: <code>(store_id, sku)</code>, <code>(store_id, slug)</code>, <code>(store_id, email)</code>, <code>(store_id, order_number)</code></td><td>Stores are independent namespaces.</td></tr>
+          <tr><td>Money &amp; rates</td><td>Amounts: <code>INT</code> minor units (cents). VAT and percentage rates: <code>DECIMAL(5,2)</code>.</td><td>No floating-point errors. Rates are exact decimals; each line is rounded half-up to cents.</td></tr>
+          <tr><td>Snapshots</td><td>Orders copy the prices, VAT, names and addresses they depend on.</td><td>History stays correct when the catalog or tax rates change.</td></tr>
+          <tr><td>Concurrency</td><td><code>version</code> column (Doctrine optimistic lock) on <code>product_variant</code> and <code>orders</code></td><td>Prevents overselling and double transitions.</td></tr>
+          <tr><td>Time</td><td><code>DATETIME</code> stored in UTC as <code>datetime_immutable</code></td><td>Consistent across stores in different time zones.</td></tr>
+          <tr><td>Enums</td><td><code>VARCHAR</code> mapped to PHP backed enums</td><td>New values need no <code>ALTER TABLE</code>.</td></tr>
+          <tr><td>Framework tables</td><td><code>messenger_messages</code>, <code>doctrine_migration_versions</code></td><td>Platform-level, not shown in the diagrams.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>Source of truth for the planned schema: this file. Update it in the same pull request as any migration that changes it.</footer>
+</div>
+<script src="_viewer.js"></script>
+</body>
+</html>

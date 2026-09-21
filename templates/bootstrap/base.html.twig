@@ -1,0 +1,14 @@
+{# Base layout for Bootstrap + jQuery pages. Loads ONLY the "bootstrap" entry (no Tailwind). #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('en') }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}{% endblock %}</title>
+        {% block stylesheets %}{{ vite_entry_link_tags('bootstrap') }}{% endblock %}
+        {% block javascripts %}{{ vite_entry_script_tags('bootstrap') }}{% endblock %}
+    </head>
+    <body>
+        {% block body %}{% endblock %}
+    </body>
+</html>

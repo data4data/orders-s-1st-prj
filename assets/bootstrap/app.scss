@@ -1,0 +1,3 @@
+// Bootstrap entry styles. Tailwind is never imported here (style isolation, decision #4).
+// Per-store brand colours arrive as CSS variables from the base layout and are mapped in Phase 3.
+@use 'bootstrap/scss/bootstrap';

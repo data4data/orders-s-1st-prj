@@ -1,0 +1,14 @@
+{# Shell for the admin SPA on admin.shop.test. Loads ONLY the "admin" entry (no Bootstrap). #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('en') }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}{% endblock %}</title>
+        {{ vite_entry_link_tags('admin') }}
+        {{ vite_entry_script_tags('admin') }}
+    </head>
+    <body>
+        <div id="admin-app"></div>
+    </body>
+</html>

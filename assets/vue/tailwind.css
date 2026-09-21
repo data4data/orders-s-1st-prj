@@ -1,0 +1,10 @@
+/*
+ * Tailwind entry for the Vue pages only. `source(none)` stops Tailwind from scanning the whole
+ * project, so classes are generated only from the Vue code and the Vue Twig templates.
+ * Bootstrap is never imported here (style isolation, decision #4).
+ */
+@import 'tailwindcss' source(none);
+@import 'tailwindcss-primeui';
+
+@source '../vue';
+@source '../../templates/vue';

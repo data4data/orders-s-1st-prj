@@ -1,0 +1,24 @@
+# Icons: Lucide only (decision #54). Lucide icons are stroke-based, so no default `fill`
+# (a fill would turn the line icons into solid shapes); the SVGs carry their own stroke settings.
+ux_icons:
+    default_icon_attributes:
+        height: '1em'
+        width: '1em'
+        aria-hidden: 'true'
+    aliases:
+        success: 'lucide:circle-check'
+        info: 'lucide:info'
+        warning: 'lucide:triangle-alert'
+        error: 'lucide:circle-x'
+        close: 'lucide:x'
+    ignore_not_found: false
+
+when@dev:
+    ux_icons:
+        iconify:
+            # Downloads an icon on first use and saves it to assets/icons/ so it is committed.
+            auto_lock: true
+
+when@prod:
+    ux_icons:
+        ignore_not_found: true

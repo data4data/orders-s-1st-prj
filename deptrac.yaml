@@ -1,0 +1,25 @@
+# Layer rules from architecture.md §2. Domain depends on nothing but brick/math.
+deptrac:
+    paths:
+        - ./src
+    layers:
+        - name: Domain
+          collectors: [{ type: classLike, value: '^App\\Domain\\' }]
+        - name: Entity
+          collectors: [{ type: classLike, value: '^App\\Entity\\' }]
+        - name: Application
+          collectors: [{ type: classLike, value: '^App\\Application\\' }]
+        - name: Infrastructure
+          collectors: [{ type: classLike, value: '^App\\Infrastructure\\' }]
+        - name: UI
+          collectors: [{ type: classLike, value: '^App\\UI\\' }]
+        - name: Framework
+          collectors: [{ type: classLike, value: '^(Symfony|Doctrine|Zenstruck|Pentatrion|Twig|Psr)\\' }]
+        - name: Math
+          collectors: [{ type: classLike, value: '^Brick\\Math\\' }]
+    ruleset:
+        Domain: [Math]
+        Entity: [Domain, Math, Framework]
+        Application: [Domain, Entity, Math, Framework]
+        Infrastructure: [Application, Entity, Domain, Math, Framework]
+        UI: [Application, Framework]

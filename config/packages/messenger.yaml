@@ -1,0 +1,34 @@
+framework:
+    messenger:
+        failure_transport: failed
+        default_bus: command.bus
+
+        buses:
+            # Commands change state. Handlers live in src/Application and run in one transaction.
+            command.bus:
+                middleware:
+                    - doctrine_transaction
+            # Queries only read.
+            query.bus: ~
+
+        transports:
+            # Emails, webhook processing and other background work (decision #23).
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    queue_name: async
+                retry_strategy:
+                    max_retries: 3
+                    multiplier: 3
+            failed:
+                dsn: 'doctrine://default?queue_name=failed'
+            sync: 'sync://'
+
+        routing:
+            Symfony\Component\Mailer\Messenger\SendEmailMessage: async
+
+when@test:
+    framework:
+        messenger:
+            transports:
+                async: 'in-memory://'
