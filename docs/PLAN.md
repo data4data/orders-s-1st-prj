@@ -2,7 +2,7 @@
 
 Status legend: **Done** · **Next** · **Planned**
 
-Each phase ends with **green CI** (once CI exists) and a short review before the next phase starts.
+Each phase ends with **green CI** (once CI exists), an updated [`MANUAL-TESTING.md`](MANUAL-TESTING.md) (what to open in the browser and what to expect), and a short review before the next phase starts.
 This plan implements the design in [`../architecture.md`](../architecture.md),
 [`diagrams/db-schema.html`](diagrams/db-schema.html), [`diagrams/architecture.html`](diagrams/architecture.html) and
 [`diagrams/pages.html`](diagrams/pages.html). The decisions behind it are recorded in [`DECISIONS.md`](DECISIONS.md).
@@ -17,7 +17,7 @@ This plan implements the design in [`../architecture.md`](../architecture.md),
 | 0.2 | DB schema diagram, architecture diagrams, pages & UI standards, `architecture.md`, this plan | Done |
 | 0.3 | Review and approval of the design (open questions answered 2026-09-21) | Done |
 | 0.4 | `compose.yaml`: MySQL 8.4 + Mailpit. `.env` → `DATABASE_URL=mysql://…` (MySQL published on port **3307**; 3306 is taken on this machine) | Done |
-| 0.5 | Herd: `herd link shop` → `shop.test`. Confirm that wildcard subdomains (`myoils-auto.shop.test`, `admin.shop.test`) reach the app, and enable HTTPS with `herd secure` | Partly done: `herd link shop` done. **You still need to** start Herd's services in the Herd app and run `herd secure shop` (it asks for your macOS password) |
+| 0.5 | Herd: `herd link shop` → `shop.test`. Confirm that wildcard subdomains (`myoils-auto.shop.test`, `admin.shop.test`) reach the app, and enable HTTPS with `herd secure` | Done (all three hosts answer over trusted HTTPS) |
 | 0.6 | Composer packages: `orm-pack`, `doctrine/doctrine-migrations-bundle`, `symfony/workflow`, `symfony/messenger`, `symfony/security-bundle`, `symfony/validator`, `symfony/serializer`, `symfony/twig-bundle`, `symfony/translation`, `symfony/rate-limiter`, `symfony/uid`, `symfony/mailer`, `symfony/scheduler`, `pentatrion/vite-bundle`, `symfony/ux-icons` (Lucide set, locked locally), `brick/math` (exact decimals in the domain). Dev: `symfony/maker-bundle`, `doctrine/doctrine-fixtures-bundle`, `zenstruck/foundry`, `phpunit`, `phpstan` + Symfony/Doctrine extensions, `deptrac`, `php-cs-fixer` (+ `symfony/http-client` for UX Icons) | Done |
 | 0.7 | npm (plain **JavaScript**, no TypeScript): `vite`, `vite-plugin-symfony`, `@vitejs/plugin-vue`, `vue`, `vue-router`, `vue-i18n`, `lucide-vue-next`, `primevue`, `@primeuix/themes`, `tailwindcss`, `@tailwindcss/vite`, `tailwindcss-primeui`, `bootstrap`, `jquery`, `sass`, `eslint`, `prettier`. Installed latest stable: Vue 3.5, **PrimeVue 5**, **jQuery 4**, Bootstrap 5.3, Tailwind 4.3, Vite 8 | Done |
 | 0.8 | Folder skeleton: `src/{Domain,Entity,Application,Infrastructure,UI}`, `assets/{bootstrap,vue}`, `templates/{bootstrap,vue}`, `translations/` (+ Vite config with 3 entries and the 3 base layouts) | Done |
@@ -28,15 +28,17 @@ This plan implements the design in [`../architecture.md`](../architecture.md),
 **Done when:** `https://myoils-auto.shop.test` shows the Symfony welcome page, `vite build` produces the
 three entries, and CI is green on an empty test.
 
-## Phase 1 — Tenancy core
+## Phase 1 — Tenancy core — **Done** (branch `feature/tenancy`)
 
-1. Entities in `src/Entity`: `Store` (including branding: `logo_url`, `favicon_url`, `primary_color`, `accent_color`, and `low_stock_threshold`), `StoreDomain`, `Country`, `StaffUser`, `StoreMembership`, `StoreSequence`, plus the first migration.
-2. `TenantAwareInterface`, `TenantContext` (+ `runAsPlatform()`), `TenantFilter` (fails closed), `TenantAssignListener` (`prePersist`).
-3. `TenantRequestListener` (priority 40, before the firewall): host → `store_domain` lookup, and the admin-host session store.
-4. Admin store switcher endpoint, limited to the staff member's memberships. Super-admin "All stores" mode is read-only.
-5. `--store` option for console commands, plus a `StoreStamp` Messenger middleware.
-6. `OrderNumberGenerator` using `store_sequence` with `SELECT … FOR UPDATE` (for example `AUTO-000123`).
-7. **Tests:** `TenantIsolationTest` (two stores; no cross-store reads or writes), unknown host → 404, missing tenant → empty result or an exception.
+1. Done: entities in `src/Entity`: `Store` (with branding and `low_stock_threshold`), `StoreDomain`, `Country`, `StaffUser`, `StoreMembership`, `StoreSequence`, plus the first migration (also creates the Messenger queue table).
+2. Done: `TenantAwareInterface` + `TenantAwareTrait`, `TenantContext` (`runAsPlatform()`, `runAsStore()`), `TenantFilter` (enabled by default, fails closed), `TenantAssignListener` (`prePersist`), `ReadOnlyGuardListener` (blocks writes in "All stores").
+3. Done: `StorefrontTenantListener` (priority 40, before the firewall): host → `store_domain`, unknown or inactive store → 404. `AdminTenantListener` (priority 7, right after the firewall) applies the switcher choice and re-checks memberships on every request.
+4. Done: admin API on `admin.shop.test`: JSON login (`POST /api/admin/login`; the Twig login page follows in Phase 5), `GET /api/admin/stores`, `GET` / `PUT /api/admin/stores/current` (store or `all` for super-admins, read-only). `StoreRoleVoter` grants `ROLE_STORE_STAFF` / `_MANAGER` / `_OWNER` for the selected store.
+5. Done: global `--store=<code>` option on every console command (`bin/console app:tenant:status --store=myoils-auto`), `StoreStamp` + `TenantMiddleware` on both Messenger buses.
+6. Done: `DbalOrderNumberGenerator` using `store_sequence` with `SELECT … FOR UPDATE` (`AUTO-000001`, …).
+7. Done: public `GET /api/store` (store info and branding for the header and theme).
+8. Done: **Tests (30):** isolation (only own rows, query builder scoped, nothing without a store, platform mode, `runAsStore` restore), auto-assignment, cross-store write refused, read-only "All stores", unknown and inactive hosts → 404, admin switcher permissions, console `--store`, Messenger stamp and restore, order numbering.
+9. Done: demo data (`MainStory`): the three NL shops with hosts and colours, `admin@myoils.test` (super-admin) and `manager@myoils.test` (manager of Auto and Industrie). The password for both is `password`.
 
 ## Phase 2 — Pure domain layer (no framework)
 
