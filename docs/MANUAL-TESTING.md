@@ -3,7 +3,7 @@
 What you can open and click today, and what you should see. This file is updated at the end of
 every phase; sections for features that don't exist yet are listed at the bottom.
 
-**Last updated:** Phase 1 (store tenancy), 2026-09-21.
+**Last updated:** Phase 2 (domain layer), 2026-09-21.
 
 ## Before you start
 
@@ -129,6 +129,21 @@ In the project folder:
 |---|---|
 | https://myoils-auto.shop.test/_profiler/ | Symfony profiler: every request with its SQL queries (check the `store_id = …` conditions), logs and timing |
 | http://localhost:8025 | Mailpit: every email the app sends lands here (none are sent yet) |
+
+## 5. Business rules (Phase 2): nothing new in the browser
+
+Phase 2 added the calculation rules (money, VAT, discounts, stock, shipping, address book) as
+pure PHP, with no pages or endpoints yet. They are checked by 81 unit tests instead of by hand.
+They become visible in the browser with the catalog (Phase 4) and checkout (Phase 5).
+
+To see them run:
+
+| Run | You should see |
+|---|---|
+| `vendor/bin/phpunit --testsuite unit --testdox` | Readable test names, all green, e.g. *Order totals match the checkout example*, *Fixed coupon is capped at the items total*, *The last billing address cannot be removed* |
+
+The numbers in the tests are the same as in the checkout sketch (`docs/diagrams/pages.html` → Cart & checkout):
+Synth Pro 5 L (net 41.28) + 2× Coolant 5 L (net 7.40) → net **56.08**, VAT **11.78**, total **67.86**.
 
 ## Not testable yet
 

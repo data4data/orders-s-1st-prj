@@ -16,8 +16,27 @@ services:
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
+    # Extension points (architecture.md §7): add a class implementing the interface and it is
+    # tagged and injected automatically. The Domain classes themselves stay free of Symfony.
+    _instanceof:
+        App\Domain\Discount\DiscountRuleInterface:
+            tags: ['app.discount_rule']
+        App\Domain\Shipping\ShippingCalculatorInterface:
+            tags: ['app.shipping_calculator']
+
     App\:
         resource: '../src/'
+
+    App\Domain\Discount\DiscountCalculator:
+        arguments:
+            $rules: !tagged_iterator app.discount_rule
+
+    App\Domain\Shipping\ShippingQuoter:
+        arguments:
+            $calculators: !tagged_iterator app.shipping_calculator
+
+    # VAT: the store's country decides (decision #26). A destination-based resolver can replace this alias.
+    App\Domain\Tax\TaxRateResolverInterface: '@App\Domain\Tax\StoreCountryTaxRateResolver'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

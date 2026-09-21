@@ -46,8 +46,15 @@ Every console command accepts `--store=<code>`, e.g. `php bin/console app:tenant
 vendor/bin/php-cs-fixer fix --dry-run   # coding standards
 vendor/bin/phpstan analyse              # static analysis, level 8 (run `bin/console cache:warmup` first)
 vendor/bin/deptrac analyse              # layer rules: Domain depends on nothing
-vendor/bin/phpunit                      # tests
+vendor/bin/phpunit                      # all tests (suites: unit, integration, functional)
 npm run check                           # ESLint, no-emoji check, build, CSS isolation check
+```
+
+Domain coverage (must be 100 %) needs a coverage driver, which free Herd lacks; run it in Docker:
+
+```bash
+docker run --rm -v "$PWD":/app -w /app php:8.4-cli sh -c 'pecl install pcov >/dev/null && docker-php-ext-enable pcov >/dev/null \
+  && php -d pcov.enabled=1 vendor/bin/phpunit --testsuite unit --coverage-clover var/coverage/clover.xml && php bin/check-domain-coverage.php'
 ```
 
 The same checks run in GitHub Actions on every pull request to `test`, `stage` and `production`.
