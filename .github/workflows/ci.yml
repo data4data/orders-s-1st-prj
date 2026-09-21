@@ -36,7 +36,7 @@ jobs:
         with:
           php-version: '8.4'
           extensions: intl, pdo_mysql
-          coverage: none
+          coverage: pcov
       - name: Validate composer.json
         run: composer validate --no-check-publish
       - name: Install dependencies
@@ -51,6 +51,10 @@ jobs:
         run: vendor/bin/deptrac analyse --no-progress
       - name: Tests
         run: vendor/bin/phpunit
+      - name: Domain coverage must be 100%
+        run: |
+          vendor/bin/phpunit --testsuite unit --coverage-clover var/coverage/clover.xml
+          php bin/check-domain-coverage.php var/coverage/clover.xml
 
   js:
     name: Frontend (lint, no-emoji, build, CSS isolation)

@@ -40,16 +40,18 @@ three entries, and CI is green on an empty test.
 8. Done: **Tests (30):** isolation (only own rows, query builder scoped, nothing without a store, platform mode, `runAsStore` restore), auto-assignment, cross-store write refused, read-only "All stores", unknown and inactive hosts → 404, admin switcher permissions, console `--store`, Messenger stamp and restore, order numbering.
 9. Done: demo data (`MainStory`): the three NL shops with hosts and colours, `admin@myoils.test` (super-admin) and `manager@myoils.test` (manager of Auto and Industrie). The password for both is `password`.
 
-## Phase 2 — Pure domain layer (no framework)
+## Phase 2 — Pure domain layer (no framework) — **Done** (branch `feature/domain-layer`)
 
-1. `Money` (integer cents + currency), `TaxRate` / `Percentage` (exact decimals from `DECIMAL(5,2)` strings, using `brick/math`; never floats), `Quantity`.
-2. `Pricing`: `LinePricer` (net → VAT → gross, each line rounded half-up to cents), `OrderTotals`, `UnitPrice` (price per litre for display).
-3. `Tax`: `TaxRateResolverInterface` and the pure selection logic (country, category, date → rate).
-4. `Discount`: `DiscountRuleInterface`, `CouponPercentageRule`, `CouponFixedAmountRule`, allocation of the discount across lines.
-5. `Inventory`: `StockPolicy` (`canReserve`, `reserve`, `commit`, `release`) on `on_hand` / `reserved`, plus the low-stock check against the store threshold.
-6. `Shipping`: `ShippingCalculatorInterface` with flat, weight-based and free-over-threshold calculators, plus the allowed-countries check.
-7. `Customer`: `AddressBookPolicy`, which requires at least one billing-capable and one delivery-capable address and blocks deleting the last one.
-8. **Tests:** 100% unit coverage of `src/Domain`. deptrac proves there are no framework imports.
+All in `src/Domain`, plain PHP (+ `brick/math` for exact decimals), no Symfony or Doctrine (checked by deptrac):
+
+1. Done: `Money\Money` (integer cents + currency, exact arithmetic, loss-free `allocate()`), `Shared\Percentage` (`DECIMAL(5,2)` string, never a float), `Shared\Quantity`.
+2. Done: `Pricing\LinePricer` (net → discount → VAT rounded half-up **per line** → gross), `Pricing\OrderTotals` (items, discount, shipping, net / VAT / gross), `Pricing\UnitPrice::perLitre()`.
+3. Done: `Tax\TaxRate`, `Tax\TaxRatePeriod` + `Tax\TaxRateTable` (validity dates, overlapping periods rejected), `TaxRateResolverInterface` + `StoreCountryTaxRateResolver` (store country decides; `TaxContext` already carries the destination country for a later OSS rule). The DB-backed `TaxRateTableProviderInterface` follows in Phase 4.
+4. Done: `Discount\DiscountRuleInterface`, `AbstractCouponRule` (eligibility, cap, fair split over lines) with `CouponPercentageRule` and `CouponFixedAmountRule`, `DiscountCalculator` (tagged rules, each applied to what is left). Rejections carry a reason (`inactive`, `expired`, `below_minimum_order`…) for the UI.
+5. Done: `Inventory\StockLevel` (`reserve` / `commit` / `release` / `restock`, `isLow(threshold)`), `Inventory\StockPolicy` (whole-cart check, same SKU counted once).
+6. Done: `Shipping\ShippingCalculatorInterface` + `AbstractShippingCalculator` with `FlatRateCalculator`, `WeightBasedCalculator`, `FreeOverThresholdCalculator`; `ShippingQuoter` (allowed countries + calculator by code, tagged).
+7. Done: `Customer\AddressBookPolicy` (at least one billing and one delivery address; defaults must fit their role).
+8. Done: **Tests: 81 unit tests, 100 % line coverage of `src/Domain`** (294 / 294), measured with pcov and enforced in CI by `bin/check-domain-coverage.php`. Test suites are now split into `unit`, `integration` and `functional`.
 
 ## Phase 3 — UI foundation (both stacks) — *new*
 

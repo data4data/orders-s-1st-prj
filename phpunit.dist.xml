@@ -18,8 +18,15 @@
     </php>
 
     <testsuites>
-        <testsuite name="Project Test Suite">
-            <directory>tests</directory>
+        <!-- Pure PHP, no kernel or database: must cover 100% of src/Domain (bin/check-domain-coverage.php). -->
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+        <testsuite name="functional">
+            <directory>tests/Functional</directory>
         </testsuite>
     </testsuites>
 

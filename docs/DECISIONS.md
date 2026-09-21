@@ -62,3 +62,8 @@ adding the date and reason. Don't silently diverge in code.
 | 55 | Cancel vs refund | **Before shipping → `cancel`** (staff; the full refund is issued automatically first). **After shipping → `refund`** (from `shipped`/`delivered`, mainly after delivery). No overlap | One clear rule for staff and customers |
 | 56 | Entity location | **`src/Entity`** (`App\Entity`), the Symfony standard; its own deptrac layer (Application and Infrastructure may use it; it may use only Domain) | What Symfony docs and `make:entity` expect; least surprise |
 | 57 | Frontend language | Plain **JavaScript** (ES modules) with JSDoc types on the API layer; no TypeScript | Matches the spec ("pure JavaScript") |
+| 58 | VAT rounding | VAT is calculated **per line** and rounded **half-up** to cents; order VAT = sum of line VAT *(Phase 2, please confirm)* | Matches what each order line snapshots; totals always add up |
+| 59 | Coupon calculation | Percentage coupons take the % of the **items net total** (before shipping); the discount is split over lines in proportion to their net (largest-remainder, never loses a cent) and taken off **before VAT** *(Phase 2, please confirm)* | Each line's VAT is computed on its discounted net, as tax rules require |
+| 60 | Free-shipping threshold | Compared with the **order value incl. VAT after discount** ("free shipping over €100" as customers read it) *(Phase 2, please confirm)* | Customers see gross prices |
+| 61 | Rounding for price per litre | pack price × 1000 / volume in ml, rounded half-up once *(Phase 2)* | Exact; e.g. €1,489.00 / 208 L = €7.16 |
+
