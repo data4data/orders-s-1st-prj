@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AUTO } from './helpers.js';
+import { ADMIN, AUTO } from './helpers.js';
 
 test('a guest adds to the cart, applies a coupon and checks out', async ({ page }) => {
     await page.goto(`${AUTO}/p/synth-pro-5w-30`);
@@ -63,9 +63,55 @@ test('a guest adds to the cart, applies a coupon and checks out', async ({ page 
     await page.getByRole('button', { name: 'Pay now' }).click();
     await expect(page.getByRole('heading', { name: 'Thank you for your order!' })).toBeVisible();
     await expect(page.getByText(/Order AUTO-\d{6}/)).toBeVisible();
-    await expect(page.getByText('Awaiting payment')).toBeVisible();
     await expect(page.getByTestId('order-total')).toHaveText('€96.89');
     await expect(page.getByTestId('cart-count')).toHaveCount(0);
+
+    // The signed webhook is processed by the worker; the page picks up the new status.
+    await expect(page.getByText('Payment received. We are preparing your order.')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText('Payment received', { exact: true })).toBeVisible();
+    const orderNumber = (await page.getByText(/Order AUTO-\d{6}/).first().textContent())?.replace('Order ', '').trim();
+
+    // Staff pick it up in the admin: prepare, ship, deliver.
+    await page.goto(`${ADMIN}/login`);
+    await page.getByLabel('Email').fill('manager@myoils.test');
+    await page.getByLabel('Password').fill('password');
+    await page.getByRole('button', { name: 'Log in' }).click();
+    await page.getByRole('combobox', { name: 'Store' }).click();
+    await page.getByRole('option', { name: "MyOil's Auto" }).click();
+    await expect(page.getByTestId('kpi-to_fulfil')).toBeVisible();
+    await page.goto(`${ADMIN}/orders?state=paid`);
+    await page.getByRole('link', { name: orderNumber }).click();
+    for (const [action, label] of [['Start processing', 'Being prepared'], ['Mark as shipped', 'Shipped'], ['Mark as delivered', 'Delivered']]) {
+        await page.getByTestId('order-actions').getByRole('button', { name: action }).click();
+        await page.getByTestId('confirm-transition').click();
+        await expect(page.getByTestId('order-actions').locator('xpath=..').getByText(label, { exact: true }).first()).toBeVisible();
+    }
+    await expect(page.getByTestId('order-actions').getByRole('button', { name: 'Refund' })).toBeVisible();
+});
+
+test('a failed payment can be tried again, and an unpaid order cancelled', async ({ page }) => {
+    await page.goto(`${AUTO}/p/longlife-0w-20`);
+    await page.getByRole('button', { name: 'Add to cart' }).click();
+    await page.goto(`${AUTO}/checkout`);
+    await page.getByLabel('Email').fill('fail@example.test');
+    await page.getByRole('button', { name: 'Continue' }).click();
+    for (const [field, value] of [['firstName', 'Els'], ['lastName', 'Smit'], ['street', 'Kade'], ['houseNumber', '3'], ['postcode', '3011 AA'], ['city', 'Rotterdam']]) {
+        await page.locator(`#billing-${field}`).fill(value);
+    }
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByText('I accept the terms and conditions').click();
+    await page.getByTestId('place-order').click();
+
+    await page.getByRole('button', { name: 'Simulate a failed payment' }).click();
+    await expect(page.getByText('The payment did not go through.')).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId('pay-again').click();
+    await expect(page.getByRole('heading', { name: 'Test payment' })).toBeVisible();
+    await page.getByRole('link', { name: 'Back to the shop' }).click();
+
+    await page.getByRole('button', { name: 'Cancel order' }).click();
+    await page.getByRole('button', { name: 'Cancel order' }).last().click();
+    await expect(page.getByRole('heading', { name: 'This order has been cancelled' })).toBeVisible();
 });
 
 test('a customer registers with one address and manages the address book', async ({ page }) => {

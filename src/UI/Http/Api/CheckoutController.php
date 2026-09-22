@@ -6,10 +6,12 @@ namespace App\UI\Http\Api;
 
 use App\Application\Bus\CommandBusInterface;
 use App\Application\Bus\QueryBusInterface;
+use App\Application\Ordering\Checkout\CancelMyOrder;
 use App\Application\Ordering\Checkout\CheckoutInput;
 use App\Application\Ordering\Checkout\GetCheckout;
 use App\Application\Ordering\Checkout\GetOrderConfirmation;
 use App\Application\Ordering\Checkout\PlaceOrder;
+use App\Application\Ordering\Checkout\RetryPayment;
 use App\UI\Http\Security\RateLimitGuard;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Target;
@@ -43,6 +45,18 @@ final class CheckoutController extends AbstractController
         RateLimitGuard::consume($limiter, $request->getClientIp() ?? 'unknown');
 
         return $this->json($this->commandBus->dispatch(new PlaceOrder($input)), 201);
+    }
+
+    #[Route('/api/orders/{id}/payment', name: 'api_order_retry_payment', methods: ['POST'])]
+    public function retryPayment(string $id): JsonResponse
+    {
+        return $this->json(['redirectUrl' => $this->commandBus->dispatch(new RetryPayment($id))]);
+    }
+
+    #[Route('/api/orders/{id}/cancel', name: 'api_order_cancel', methods: ['POST'])]
+    public function cancel(string $id): JsonResponse
+    {
+        return $this->json($this->commandBus->dispatch(new CancelMyOrder($id)));
     }
 
     #[Route('/api/orders/{id}', name: 'api_order_confirmation', methods: ['GET'])]

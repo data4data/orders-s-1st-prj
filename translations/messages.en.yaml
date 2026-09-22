@@ -136,6 +136,13 @@ email:
         button: Choose a new password
         expiry: The link works for one hour and only once.
         ignore: If you did not ask for this, you can ignore this email.
+    order:
+        pay: We received your payment for order %number%. We are preparing it now.
+        ship: Good news, order %number% has left our warehouse.
+        cancel: Order %number% has been cancelled. If you already paid, the full amount is refunded to you.
+        refund: We refunded order %number% in full.
+        total: Total incl. VAT
+        view: View your order
 
 fake_gateway:
     title: Test payment

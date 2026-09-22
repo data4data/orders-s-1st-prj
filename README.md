@@ -28,6 +28,7 @@ Create the database and load the demo data:
 
 ```bash
 composer demo:reset                # drop + create the database, run the migrations, load the demo data
+composer worker                    # keep running: payment webhooks, emails, scheduled jobs
 ```
 
 | Host | What |

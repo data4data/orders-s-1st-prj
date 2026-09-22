@@ -14,28 +14,27 @@ use App\Application\Ordering\CartPresenter;
 use App\Application\Ordering\CartProvider;
 use App\Application\Ordering\OrderNumberGeneratorInterface;
 use App\Application\Ordering\OrderPricer;
+use App\Application\Ordering\OrderTransitions;
 use App\Application\Ordering\Port\CartStorageInterface;
 use App\Application\Ordering\Port\OrderRepositoryInterface;
 use App\Application\Ordering\Port\PaymentRepositoryInterface;
 use App\Application\Ordering\Port\ShippingMethodRepositoryInterface;
 use App\Application\Ordering\PricedOrder;
 use App\Application\Ordering\View\OrderView;
-use App\Application\Payment\PaymentGatewayRegistry;
-use App\Application\Payment\PaymentRequest;
+use App\Application\Payment\PaymentStarter;
 use App\Application\Tenancy\TenantContextInterface;
 use App\Application\Validation\ValidationException;
 use App\Domain\Inventory\StockPolicy;
 use App\Domain\Inventory\StockRequest;
-use App\Domain\Money\Money;
+use App\Domain\Ordering\OrderState;
+use App\Domain\Payment\PaymentState;
 use App\Domain\Shared\Quantity;
 use App\Entity\Customer;
 use App\Entity\Embeddable\PostalAddress;
 use App\Entity\Order;
-use App\Entity\Payment;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Workflow\WorkflowInterface;
 
@@ -58,10 +57,10 @@ final readonly class CheckoutHandler
         private AddressWriter $addressWriter,
         private StockPolicy $stockPolicy,
         private OrderNumberGeneratorInterface $orderNumbers,
-        private PaymentGatewayRegistry $gateways,
+        private PaymentStarter $paymentStarter,
+        private OrderTransitions $orderTransitions,
         #[Target('order')]
         private WorkflowInterface $orderWorkflow,
-        private UrlGeneratorInterface $urls,
         private ClockInterface $clock,
     ) {
     }
@@ -143,10 +142,15 @@ final readonly class CheckoutHandler
             $this->clock->now(),
         );
         $cart->getCoupon()?->recordUse();
+        // The guards (OrderTransitionPolicy) check lines, addresses and shipping on the snapshot.
+        $blockers = $this->orderWorkflow->buildTransitionBlockerList($cart, 'checkout');
+        if (!$blockers->isEmpty()) {
+            throw ValidationException::forField('cart', implode(' ', array_map(static fn ($b) => $b->getMessage(), iterator_to_array($blockers))));
+        }
         $this->orderWorkflow->apply($cart, 'checkout');
         $this->orders->save($cart);
 
-        $payment = $this->startPayment($cart);
+        $payment = $this->paymentStarter->start($cart);
         $orderId = $cart->getPublicId()->toRfc4122();
         $this->cartStorage->forgetCart((int) $store->getId());
         $this->cartStorage->rememberPlacedOrder($orderId);
@@ -157,15 +161,45 @@ final readonly class CheckoutHandler
     #[AsMessageHandler(bus: 'query.bus')]
     public function confirmation(GetOrderConfirmation $query): OrderView
     {
-        $order = Uuid::isValid($query->id) ? $this->orders->findByPublicId(Uuid::fromString($query->id)) : null;
-        $customer = $this->currentCustomer->get();
-        $allowed = null !== $order && !$order->isDraft()
-            && ((null !== $customer && $order->getCustomer() === $customer) || $this->cartStorage->placedOrderIsKnown($query->id));
-        if (!$allowed) {
-            throw NotFoundException::of('Order', $query->id);
-        }
+        $order = $this->ownOrder($query->id);
 
         return OrderView::from($order, $this->payments->latestFor($order));
+    }
+
+    /**
+     * "Try again" after a failed or abandoned payment: a new attempt, unless one is still open.
+     */
+    #[AsMessageHandler(bus: 'command.bus')]
+    public function retryPayment(RetryPayment $command): string
+    {
+        $order = $this->ownOrder($command->id);
+        if (OrderState::PaymentPending !== $order->state()) {
+            throw new \DomainException('This order is not waiting for payment.');
+        }
+        $latest = $this->payments->latestFor($order);
+        $payment = null !== $latest && PaymentState::Pending === $latest->state() && null !== $latest->getCheckoutUrl() ? $latest : $this->paymentStarter->start($order);
+
+        return (string) $payment->getCheckoutUrl();
+    }
+
+    #[AsMessageHandler(bus: 'command.bus')]
+    public function cancel(CancelMyOrder $command): OrderView
+    {
+        $order = $this->ownOrder($command->id);
+        $this->orderTransitions->apply($order, 'cancel', 'Cancelled by the customer');
+
+        return OrderView::from($order, $this->payments->latestFor($order));
+    }
+
+    /** A placed order of the logged-in customer, or one this session placed as a guest. */
+    private function ownOrder(string $id): Order
+    {
+        $order = Uuid::isValid($id) ? $this->orders->findByPublicId(Uuid::fromString($id)) : null;
+        $customer = $this->currentCustomer->get();
+        $allowed = null !== $order && !$order->isDraft()
+            && ((null !== $customer && $order->getCustomer() === $customer) || $this->cartStorage->placedOrderIsKnown($id));
+
+        return $allowed ? $order : throw NotFoundException::of('Order', $id);
     }
 
     /**
@@ -226,29 +260,5 @@ final readonly class CheckoutHandler
         if (null !== $input->expectedTotal && $input->expectedTotal !== $priced->totals->totalGross->amount) {
             throw ValidationException::forField('cart', 'The total of your order has changed. Please check the summary and confirm again.');
         }
-        if (!$this->orderWorkflow->can($cart, 'checkout')) {
-            throw ValidationException::forField('cart', 'This order cannot be placed.');
-        }
-    }
-
-    private function startPayment(Order $order): Payment
-    {
-        $store = $this->tenantContext->requireStore();
-        $gateway = $this->gateways->forStore($store);
-        $payment = new Payment($order, $gateway->code(), $order->getTotalGross(), $order->getCurrencyCode());
-        $this->payments->save($payment);
-
-        $session = $gateway->createCheckoutSession(new PaymentRequest(
-            $payment->getPublicId()->toRfc4122(),
-            (string) $order->getOrderNumber(),
-            Money::of($order->getTotalGross(), $order->getCurrencyCode()),
-            (string) $order->getCustomerEmail(),
-            $this->urls->generate('order_confirmation', ['id' => $order->getPublicId()->toRfc4122()], UrlGeneratorInterface::ABSOLUTE_URL),
-            $this->urls->generate('payment_webhook', ['gateway' => $gateway->code()], UrlGeneratorInterface::ABSOLUTE_URL),
-        ));
-        $payment->attachSession($session->externalReference, $session->redirectUrl, $session->metadata);
-        $this->payments->save($payment);
-
-        return $payment;
     }
 }

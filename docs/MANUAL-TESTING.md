@@ -3,7 +3,7 @@
 What you can open and click today, and what you should see. This file is updated at the end of
 every phase; sections for features that don't exist yet are listed at the bottom.
 
-**Last updated:** Phase 5 (Customers, cart, checkout), 2026-09-22.
+**Last updated:** Phase 6 (Order and payment workflows), 2026-09-22.
 
 ## Before you start
 
@@ -17,6 +17,8 @@ every phase; sections for features that don't exist yet are listed at the bottom
    npm run build          # or keep `npm run dev` running while you work
    ```
    Run `composer demo:reset` again whenever you want the original demo data back (for example after editing products).
+4. Keep a **worker** running in a second terminal: `composer worker`. It processes payment webhooks (an order only
+   becomes *Payment received* through it), sends queued emails to Mailpit and runs the scheduled jobs.
 
 Demo customer (per shop, password `password`): `jan@example.test` has an account in **MyOil's Auto**
 (home address in Amsterdam, garage in Utrecht) and in **MyOil's Industrie** (a company address), not in Agri.
@@ -219,7 +221,7 @@ Real errors in development show Symfony's developer page instead; the `/_error/�
 
 ### Automated browser tests
 
-`npx playwright test` runs 22 browser checks (16 of the UI foundation, 4 of the catalog in section 7, 2 of the shopper journey in section 8) of all of the above (uses your installed Chrome and PHP's built-in
+`npx playwright test` runs 23 browser checks (UI foundation, catalog in section 7, shopper journey in section 8, payments and admin orders in section 9). It starts its own worker of all of the above (uses your installed Chrome and PHP's built-in
 server, so it works even when Herd is not running).
 
 ## 7. Catalog (Phase 4)
@@ -295,11 +297,11 @@ Pallet delivery €89.90 (Industrie and Agri).
 | Untick *Deliver to the billing address*, choose country **Germany** for delivery | Only DHL Europe is offered, priced by weight |
 | Review: accept the terms, **Pay €…** | The wizard jumps back to *Addresses*: *Enter a Dutch postcode like 1012 AB.* |
 | Fix the postcode, go to Review, **Pay** | The **Test payment** page (local fake provider) with the same amount |
-| **Pay now** | *Thank you for your order!*, order number `AUTO-000001`, status **Awaiting payment** (the webhook that marks it paid arrives in Phase 6), lines, addresses, totals; the cart badge is gone |
+| **Pay now** | *Thank you for your order!*, order number `AUTO-000001`, lines, addresses, totals; the cart badge is gone. After a moment (worker) the status becomes **Payment received** |
 | Copy the confirmation address into a private window | *Order not found*: only the session that placed it (or the account owner) sees it |
 | Change `amount=` in the test payment address | *This payment link is invalid or has expired.* (signed URL) |
 
-Emails (password reset) arrive in Mailpit: http://localhost:8025 (run `php bin/console messenger:consume async` to send queued mail).
+Emails (password reset, order updates) arrive in Mailpit: http://localhost:8025 while `composer worker` runs.
 
 ### Accounts
 
@@ -318,10 +320,46 @@ Emails (password reset) arrive in Mailpit: http://localhost:8025 (run `php bin/c
 | https://myoils-auto.shop.test/forgot-password → `jan@example.test` | *If an account exists…*; the email in Mailpit has a link that works once, for one hour |
 | Checkout while logged in | Starts at *Addresses* with Jan's saved addresses to choose from |
 
+## 9. Order and payment workflows (Phase 6)
+
+Keep `composer worker` running. Log in to the admin as `manager@myoils.test` and pick **MyOil's Auto**.
+
+### Payments
+
+| Do | You should see |
+|---|---|
+| Place an order in the shop and click **Pay now** on the test payment page | Confirmation shows *The payment provider is confirming…*, then **Payment received**; Mailpit has *Order AUTO-… confirmed: payment received* |
+| Same, but click **Simulate a failed payment** | *The payment did not go through. Nothing was charged; you can try again.* and a **Try the payment again** button |
+| **Try the payment again** | A new test payment page (a second payment attempt) |
+| **Cancel order** on the confirmation page (unpaid order) | Confirmation dialog, then *This order has been cancelled*; the reserved stock is back |
+| Stop the worker, pay an order, start the worker again | The order becomes paid when the worker catches up (webhooks are stored first) |
+
+### Admin → Orders (https://admin.shop.test/orders)
+
+| Do | You should see |
+|---|---|
+| Open the list | Newest first, status tags, guest marker, totals; filter **Status** and search by number, email or name (both kept in the address) |
+| Open a paid order | Lines, addresses, payments, **History** timeline (*Awaiting payment → Payment received*, actor *System*) and buttons **Start processing** and **Cancel order** only |
+| **Start processing** → **Mark as shipped** → **Mark as delivered** (confirm each, optional note) | Status tag and timeline follow, your name and note appear; *Shipped* sends an email; at the end only **Refund** remains |
+| **Refund** on a delivered order | Confirmation *€… is refunded to the customer*; payment shows the refunded amount; status **Refunded** |
+| **Cancel order** on a paid order | The payment is refunded first, the stock goes back on the shelf, status **Cancelled** |
+| Open the same order in two tabs, act in one, then in the other | Dialog *This was changed in the meantime* (409) |
+
+### Admin → Dashboard (https://admin.shop.test/)
+
+| You should see |
+|---|
+| KPI cards: revenue and paid orders (30 days), average order, *Awaiting payment* and *To prepare and ship* (click to filter the order list) |
+| *Revenue, last 14 days* bar chart, *Orders by status* bars (click a status to filter), latest orders, low stock with the shop's threshold |
+
+### Expiry
+
+`php bin/console app:orders:expire --minutes=0` cancels every order still awaiting payment (the worker does
+the same every 5 minutes for orders older than 60 minutes). The timeline says *Payment not received within 0 minutes.*
+
 ## Not testable yet
 
 | Feature | Arrives in |
 |---|---|
-| Payment confirmation (webhook → *Payment received*), order workflow buttons, admin orders and dashboard | Phase 6 |
 | Landing, about, FAQ, contact pages | Phase 7 |
 | Bigger demo catalog, customers and orders | Phase 8 |

@@ -11,5 +11,10 @@ interface PaymentRepositoryInterface
 {
     public function latestFor(Order $order): ?Payment;
 
+    /** @return list<Payment> every attempt, oldest first */
+    public function forOrder(Order $order): array;
+
+    public function findByReference(string $gatewayCode, string $externalReference): ?Payment;
+
     public function save(Payment $payment): void;
 }

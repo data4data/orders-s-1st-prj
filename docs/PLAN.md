@@ -94,16 +94,16 @@ Everything in [pages.html → UI standards / Error handling](diagrams/pages.html
 7. Done: Vue checkout wizard (account/guest → addresses → shipping → review & pay) with the order summary always visible; server errors jump back to the step of the field; confirmation page.
 8. Done: **tests:** 176 PHP tests (cart, coupons, stock limits, checkout for guests and customers, validation per field, confirmation access, registration, login per shop, password reset, account and address rules, fake gateway and webhook signatures) and **22 Playwright browser tests**.
 
-## Phase 6 — Order & payment workflows
+## Phase 6 — Order & payment workflows — **Done** (branch `feature/order-workflows`)
 
-1. Done early (Phase 5): `config/packages/workflow.yaml` with the `order` and `payment` state machines exactly as in the diagrams.
-2. Guard listeners for each transition, delegating to Domain policies.
-3. `completed` listeners: `order_status_history`, and emails queued on the async transport.
-4. Webhook endpoint `/webhooks/payment/{gateway}`: store the event, deduplicate, process asynchronously. Payment `capture` → order `pay` → stock deduction.
-5. Admin Orders: list, and detail with a timeline and buttons only for `workflow.can()` transitions (destructive ones through the confirmation dialog).
-6. Admin Dashboard: KPI cards, orders-by-status and revenue charts, low-stock list (store threshold), latest orders.
-7. Scheduler job: expire stale `payment_pending` orders → `cancel` → release stock.
-8. **Tests:** every illegal transition is blocked (for example `ship` from `payment_pending`); stock invariants hold across all paths.
+1. Done (configured in Phase 5): `config/packages/workflow.yaml` with the `order` and `payment` state machines exactly as in the diagrams.
+2. Done: `workflow.order.guard` → `OrderGuardListener` → pure `Domain\Ordering\OrderTransitionPolicy` (checkout needs lines, addresses, shipping; pay needs the full capture; fulfilment is staff-only and `ship` re-checks the payment; cancel after payment and refund need the full refund). Payment `refund` guard: refunds add up to the amount.
+3. Done: `OrderTransitions` applies each transition with its effects in the same transaction (pay → stock out of the reservation; cancel before payment → reservation released, open payments cancelled; cancel after payment → full refund through the gateway, then restock; refund → full refund, no restock). `completed` listeners write `order_status_history` (actor and note) and queue customer emails (paid, shipped, cancelled, refunded).
+4. Done: `/webhooks/payment/{gateway}` verifies, stores `payment_webhook_event` once per (gateway, event id), answers 202 and queues `ProcessPaymentWebhook` on the async transport; the worker applies the payment transition and, on capture, the order `pay`. The FakeGateway page now sends the signed webhook. Customers can try a failed payment again or cancel an unpaid order.
+5. Done: Admin → Orders: list (status filter in the address, search by number/email/name) and detail with lines, addresses, payments, timeline and one button per transition the workflow allows now (cancel and refund confirmed first, with an optional note; stale screens get 409).
+6. Done: Admin dashboard: KPI cards (30 days), revenue per day (14 days, chart.js), orders by status, low stock (store threshold), latest orders.
+7. Done: scheduler (`ExpireUnpaidOrders` every 5 minutes, also `bin/console app:orders:expire`): orders awaiting payment for more than 60 minutes are cancelled and their stock released.
+8. Done: **tests:** every transition rule in unit tests (100 % Domain coverage), and functional tests for webhook → pay → fulfilment → refund, cancel before and after payment, illegal transitions (e.g. `ship` from `paid`), duplicate webhooks, retry and customer cancel, expiry and the dashboard, with the stock invariants on every path; **23 Playwright browser tests** (a worker is started for them).
 
 ## Phase 7 — Bootstrap & jQuery content pages
 

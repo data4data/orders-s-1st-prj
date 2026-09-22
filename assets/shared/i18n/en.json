@@ -242,6 +242,94 @@
                 "delete_confirm": "Delete attribute",
                 "delete_cancel": "Keep attribute"
             }
+        },
+        "orders": {
+            "title": "Orders",
+            "search": "Search by number, email or name",
+            "status": "Status",
+            "all_states": "All statuses",
+            "number": "Order",
+            "placed": "Placed",
+            "customer": "Customer",
+            "items": "Items",
+            "total": "Total",
+            "guest": "Guest",
+            "registered": "Registered customer",
+            "empty": "No orders yet",
+            "empty_text": "Orders appear here after checkout.",
+            "back": "Back to orders",
+            "payments": "Payments",
+            "timeline": "History",
+            "comment": "Note (optional)",
+            "no_actions": "No further steps for this order.",
+            "done": "{action}: done.",
+            "transition": {
+                "checkout": "Place",
+                "pay": "Mark as paid",
+                "start_processing": "Start processing",
+                "ship": "Mark as shipped",
+                "deliver": "Mark as delivered",
+                "cancel": "Cancel order",
+                "refund": "Refund"
+            },
+            "confirm": {
+                "start_processing": {
+                    "title": "Start processing {number}?",
+                    "body": "The order moves to \"Being prepared\"."
+                },
+                "ship": {
+                    "title": "Mark {number} as shipped?",
+                    "body": "The customer receives a shipping email."
+                },
+                "deliver": {
+                    "title": "Mark {number} as delivered?",
+                    "body": "Use this when the carrier confirms the delivery."
+                },
+                "pay": {
+                    "title": "Mark {number} as paid?",
+                    "body": "Only possible when the payment has been captured."
+                },
+                "cancel": {
+                    "title": "Cancel order {number}?",
+                    "body": "If the order is paid, {amount} is refunded to the customer first. Reserved or sold stock goes back to the shelf. This cannot be undone."
+                },
+                "refund": {
+                    "title": "Refund order {number}?",
+                    "body": "{amount} is refunded to the customer. The goods are not restocked automatically."
+                },
+                "checkout": {
+                    "title": "Place {number}?",
+                    "body": ""
+                }
+            },
+            "actor": {
+                "staff": "Staff",
+                "customer": "Customer",
+                "system": "System"
+            },
+            "payment_state": {
+                "pending": "pending",
+                "authorized": "authorized",
+                "captured": "captured",
+                "failed": "failed",
+                "cancelled": "cancelled",
+                "refunded": "refunded"
+            }
+        },
+        "dashboard": {
+            "revenue": "Revenue",
+            "revenue_14": "Revenue, last 14 days (incl. VAT)",
+            "by_state": "Orders by status",
+            "latest": "Latest orders",
+            "low_stock": "Low stock (at most {threshold} available)",
+            "stock_ok": "All pack sizes are well stocked",
+            "kpi": {
+                "revenue": "Revenue, 30 days",
+                "paid_orders": "Paid orders, 30 days",
+                "average": "Average order",
+                "awaiting": "Awaiting payment",
+                "to_fulfil": "To prepare and ship"
+            }
         }
     },
     "empty": {
@@ -441,8 +529,8 @@
         "email_sent": "We will send the confirmation to {email}.",
         "payment_open": "Your order is waiting for payment.",
         "pay_now": "Pay now",
-        "payment_processing": "The payment provider is confirming your payment. This page shows the new status once it arrives.",
-        "payment_failed": "The payment did not go through. You can try again from your order.",
+        "payment_processing": "The payment provider is confirming your payment…",
+        "payment_failed": "The payment did not go through. Nothing was charged; you can try again.",
         "continue": "Continue shopping",
         "not_found": "Order not found",
         "not_found_text": "This order does not exist or belongs to another account.",
@@ -462,7 +550,15 @@
             "delivered": "Delivered",
             "cancelled": "Cancelled",
             "refunded": "Refunded"
-        }
+        },
+        "try_again": "Try the payment again",
+        "payment_received": "Payment received. We are preparing your order.",
+        "cancel": "Cancel order",
+        "keep": "Keep order",
+        "cancel_title": "Cancel this order?",
+        "cancel_body": "The reserved products go back on the shelf. You have not paid anything yet.",
+        "cancelled": "Your order has been cancelled.",
+        "cancelled_title": "This order has been cancelled"
     },
     "account": {
         "title": "My account",

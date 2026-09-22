@@ -524,6 +524,7 @@ erDiagram
     varchar to_state
     varchar actor_type "staff | customer | system"
     int actor_id "NULL for system"
+    varchar actor_name "snapshot for the timeline"
     varchar comment
     datetime created_at
   }
@@ -584,8 +585,10 @@ erDiagram
     int store_id FK
     varchar gateway_code "UK with external_event_id"
     varchar external_event_id "idempotency key"
-    json payload
+    json payload "normalised event + raw body"
     datetime processed_at
+    varchar result "what processing did"
+
     datetime created_at
   }
   contact_message {
