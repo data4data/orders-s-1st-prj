@@ -16,6 +16,7 @@ Requirements: [Laravel Herd](https://herd.laravel.com) (PHP 8.4, Composer, Node)
 ```bash
 composer install
 npm install
+composer app:secret                # writes this machine's APP_SECRET into .env.local (never committed)
 docker compose up -d --wait        # MySQL 8.4 on 127.0.0.1:3307, Mailpit on :1025 / http://localhost:8025
 herd link shop                     # serves the app at shop.test and every *.shop.test subdomain
 herd secure shop                   # HTTPS (asks for your macOS password)

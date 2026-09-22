@@ -91,7 +91,8 @@
         "worker": [
             "Composer\\Config::disableProcessTimeout",
             "@php bin/console messenger:consume async scheduler_default -vv"
-        ]
+        ],
+        "app:secret": "@php bin/init-local-env.php"
     },
     "conflict": {
         "symfony/symfony": "*"
@@ -121,6 +122,7 @@
     },
     "scripts-descriptions": {
         "demo:reset": "Recreate the dev database from the migrations and load the MyOil's demo data",
-        "worker": "Process payment webhooks, emails and scheduled jobs (keep running while testing)"
+        "worker": "Process payment webhooks, emails and scheduled jobs (keep running while testing)",
+        "app:secret": "Generate this machine’s APP_SECRET into .env.local (never committed)"
     }
 }
