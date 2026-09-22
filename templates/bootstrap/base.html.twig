@@ -1,14 +1,26 @@
 {# Base layout for Bootstrap + jQuery pages. Loads ONLY the "bootstrap" entry (no Tailwind). #}
+{% set layout = layout ?? storefront_layout() %}
 <!DOCTYPE html>
 <html lang="{{ app.request.locale|default('en') }}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{% block title %}{% endblock %}</title>
+        {# Very early errors (e.g. maintenance mode) are rendered before the session exists. #}
+        {% if app.request.hasSession %}<meta name="csrf-token" content="{{ csrf_token('api') }}">{% endif %}
+        <title>{% block title %}{% endblock %}{% if layout %} · {{ layout.store.name }}{% endif %}</title>
+        <link rel="icon" href="{{ layout and layout.store.faviconUrl ? layout.store.faviconUrl : '/favicon.svg' }}">
+        {{ brand_style(layout ? layout.store.primaryColor : null, layout ? layout.store.accentColor : null) }}
         {% block stylesheets %}{{ vite_entry_link_tags('bootstrap') }}{% endblock %}
         {% block javascripts %}{{ vite_entry_script_tags('bootstrap') }}{% endblock %}
     </head>
-    <body>
-        {% block body %}{% endblock %}
+    <body class="d-flex flex-column min-vh-100 {% block body_class %}{% endblock %}">
+        <a class="visually-hidden-focusable btn btn-primary position-absolute m-2" href="#main">{{ 'layout.skip_to_content'|trans }}</a>
+        {% block header %}{% if layout %}{% include 'bootstrap/_header.html.twig' %}{% endif %}{% endblock %}
+        <main id="main" class="flex-grow-1">{% block body %}{% endblock %}</main>
+        {% block footer %}{% if layout %}{% include 'bootstrap/_footer.html.twig' %}{% endif %}{% endblock %}
+        {% include 'bootstrap/_ui_layer.html.twig' %}
+        {% set flashes = [] %}
+        {% for type, messages in app.flashes %}{% for message in messages %}{% set flashes = flashes|merge([{type: type, text: message|trans}]) %}{% endfor %}{% endfor %}
+        <script type="application/json" id="app-flashes">{{ flashes|json_encode|raw }}</script>
     </body>
 </html>

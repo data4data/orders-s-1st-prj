@@ -3,16 +3,19 @@
 What you can open and click today, and what you should see. This file is updated at the end of
 every phase; sections for features that don't exist yet are listed at the bottom.
 
-**Last updated:** Phase 2 (domain layer), 2026-09-21.
+**Last updated:** Phase 3 (UI foundation), 2026-09-22.
 
 ## Before you start
 
 1. Herd is running (menu bar icon), and `https://shop.test` does not say "server IP address could not be found".
+   Because the project is inside **Documents**, Herd needs **Full Disk Access** (System Settings → Privacy & Security),
+   otherwise pages load without styles (nginx: *Operation not permitted*). Then run `herd restart`.
 2. Docker is running: `docker compose up -d --wait` (MySQL + Mailpit).
-3. The database has the demo data:
+3. The database has the demo data, and the frontend is built:
    ```bash
    php bin/console doctrine:migrations:migrate -n
    php bin/console foundry:load-fixtures main -n
+   npm run build          # or keep `npm run dev` running while you work
    ```
 
 Demo staff logins (password for both: `password`):
@@ -40,10 +43,10 @@ only from the address, and an unknown address shows nothing (fail closed).
 > The 404 pages are currently Symfony's developer error page. The branded error pages come in Phase 3.
 > `https://myoils-auto.shop.test/` itself is also a 404 until the landing page exists (Phase 7).
 
-## 2. Admin store switcher (`admin.shop.test`)
+## 2. Admin store switcher via the API (`admin.shop.test`)
 
-The admin has no screens yet (the Vue admin arrives in Phase 3), so you log in and switch stores
-through the browser's developer console. It takes about two minutes.
+Since Phase 3 the admin has a login page and screens (see section 6). This section tests the same
+API directly through the browser's developer console, which is useful for checking the permissions.
 
 ### 2.1 Not logged in
 
@@ -75,14 +78,17 @@ through the browser's developer console. It takes about two minutes.
 
 ### 2.4 Switch stores (in the console, still on the admin address)
 
-Paste this helper once:
+Paste this helper once (since Phase 3 every change needs the CSRF token in the `X-CSRF-Token` header):
 ```js
 const stores = await fetch('/api/admin/stores').then(r => r.json());
 const idOf = code => (stores.find(s => s.code === code) ?? {}).publicId;
+const token = (await fetch('/api/csrf-token').then(r => r.json())).token;
 const switchTo = store => fetch('/api/admin/stores/current', {
-  method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ store }),
+  method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token }, body: JSON.stringify({ store }),
 }).then(async r => ({ status: r.status, body: await r.text() }));
 ```
+
+Without the header the answer is **419** *Your session expired* (CSRF protection).
 
 | Paste | You should see |
 |---|---|
@@ -101,7 +107,7 @@ Open https://myoils-agri.shop.test/api/store in another tab, copy its `publicId`
 
 In the console:
 ```js
-await fetch('/api/admin/logout', { method: 'POST' });
+await fetch(`/api/admin/logout?_csrf_token=${token}`, { method: 'POST' });
 await fetch('/api/admin/login', {
   method: 'POST', headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ username: 'admin@myoils.test', password: 'password' }),
@@ -145,11 +151,78 @@ To see them run:
 The numbers in the tests are the same as in the checkout sketch (`docs/diagrams/pages.html` → Cart & checkout):
 Synth Pro 5 L (net 41.28) + 2× Coolant 5 L (net 7.40) → net **56.08**, VAT **11.78**, total **67.86**.
 
+## 6. UI foundation (Phase 3): the UI kit pages
+
+Two demo pages show **every UI standard** from `docs/diagrams/pages.html`, one per frontend. They exist in
+development only. Open them on different shops to see the per-store colours:
+
+| Open | What it is |
+|---|---|
+| https://myoils-auto.shop.test/ui-kit | Bootstrap + jQuery version (navy + amber) |
+| https://myoils-industrie.shop.test/ui-kit/vue | Vue + PrimeVue + Tailwind version (graphite + orange) |
+| https://myoils-agri.shop.test/ui-kit | Bootstrap again, green + yellow |
+
+On each page, try the numbered sections. You should see:
+
+| Section | Do | You should see |
+|---|---|---|
+| Header / footer | look at the top | Store name + droplet icon, search, account and cart icons, "Other MyOil's shops" menu with the two other shops; footer links |
+| 1. Toasts | click each button | Success and Info disappear after about 4 s (hover pauses in Bootstrap); Warning and Error stay until you click the X; the error shows *Reference: 7F3A-91C2*; never more than 3 at once |
+| 2. Form | click **Send** with everything empty | Red borders + a short message under each field, a summary "Please fix 4 field(s)" with links, the cursor jumps to Name |
+| 2. Form | type `jan@` in Email and leave the field | *Enter a full email address, e.g. jan@example.com.*; fixing it turns the border green right away |
+| 2. Form | type `10123` as postcode, click **Send without browser checks** | The **server's** errors appear in the same places (*Use the format 1234 AB.* …) |
+| 2. Form | fill everything correctly, click **Send** | Green toast *Thanks, your message was sent.* (Bootstrap: after a page reload, as a flash message) |
+| 3. Confirmation | click **Delete address "Workshop"** | Dialog titled *Delete address "Workshop"?*; the safe button is focused; Esc or clicking outside keeps it (toast *Nothing was deleted.*); the red button deletes |
+| 3. Unsaved changes | type in the form, then click the link in section 3 | *Leave without saving?* dialog; **Stay on page** keeps your text. Closing the tab shows the browser's own warning |
+| 4. Loading | **Load products** / **Load an empty list** | Grey skeleton lines, then the list; the empty list shows an icon, *No products match* and a **Clear filters** button |
+| 5. Errors | click each status button | 400/403/404/405/413: red toast · 401: *Your session expired* dialog · 409: *This was changed in the meantime* dialog with Reload · 419: the page silently fetches a new token, retries once, then shows *Your session expired* · 429: yellow toast counting down and the button shows *Wait 30 s* · 500: red toast with a reference code · 502/503/504: red toast |
+| 5. Errors | **Real rate limit (3/min)** four times | The 4th click gets a real 429 with a countdown |
+| 5. Errors | **Timeout (15 s)** | After 15 s a yellow toast *This is taking too long* |
+| 5. Errors | **JavaScript error** | One red toast *Something went wrong on this page* |
+| Offline | Developer tools → Network → *Offline* | Yellow banner at the bottom *You're offline…*; submit buttons are dimmed; going back online shows *You're back online.* |
+| 6. Icons | look | Lucide line icons, no emojis anywhere |
+
+### Branded error pages
+
+| Open | You should see |
+|---|---|
+| https://myoils-agri.shop.test/_error/404 | *We can't find this page* in Agri colours with the shop header and footer |
+| https://myoils-auto.shop.test/_error/500 | *Something went wrong*, a **Reference** code, **Try again** and **Back to home** |
+| https://myoils-auto.shop.test/_error/429 | *Too many attempts* |
+| https://myoils-auto.shop.test/_error/419 · /_error/403 · /_error/503 | Session expired · No access · *We'll be right back* |
+| https://unknown.shop.test/_error/404 | Neutral blue page *Store not found* (no shop header) |
+
+Real errors in development show Symfony's developer page instead; the `/_error/…` previews show what visitors see.
+
+### Maintenance mode
+
+| Run | You should see |
+|---|---|
+| `php bin/console app:maintenance on` | Every page shows *We'll be right back* (503) |
+| `php bin/console app:maintenance off` | Pages are back |
+
+### Admin: login page and app shell
+
+| Do | You should see |
+|---|---|
+| Open https://admin.shop.test/orders | Redirect to the login page (Bootstrap, neutral blue) |
+| Log in with a wrong password | *The email or password is not correct.* After 5 wrong attempts: *Too many failed login attempts…* |
+| Log in as `manager@myoils.test` / `password` | Back on **Orders** ("arrives in phase 6"). Dark sidebar: Dashboard, Orders, Catalog (Products, Categories, Attributes), Customers, Coupons, Settings, UI kit (dev); **no Platform** item |
+| Click **Dashboard** | *Pick a store to start* |
+| Open the **Store** selector at the top | Only **MyOil's Auto** and **MyOil's Industrie**; picking one shows *Now working in …* |
+| Log out (user menu top right), log in as `admin@myoils.test` | **Platform** appears under *Super-admin*; the selector also offers *All stores (read-only)*, which shows a *Read-only* tag |
+| Open https://admin.shop.test/nothing-here | In-app page *This admin page does not exist* |
+| Open **UI kit (dev)** in the sidebar, type in the form, click **Dashboard** | *Leave without saving?* (the router guard of the admin app) |
+
+### Automated browser tests
+
+`npx playwright test` runs 16 browser checks of all of the above (uses your installed Chrome and PHP's built-in
+server, so it works even when Herd is not running).
+
 ## Not testable yet
 
 | Feature | Arrives in |
 |---|---|
-| Branded error pages, toasts, forms, confirmation dialogs, admin screens | Phase 3 (UI foundation) |
 | Catalog and product pages | Phase 4 |
 | Registration, login page, account, cart, checkout, fake payment | Phase 5 |
 | Order workflow buttons, admin dashboard | Phase 6 |

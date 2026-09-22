@@ -32,7 +32,7 @@ adding the date and reason. Don't silently diverge in code.
 | 25 | Tooling | PHPUnit, PHPStan level 8, deptrac, PHP-CS-Fixer, ESLint + Prettier, GitHub Actions | Machine-checked architecture |
 | 26 | Tax rule detail | The store's country decides VAT, behind `TaxRateResolverInterface` | Simple now; destination-based rule can be added later |
 | 27 | Folder layout | **Layer-first**: `Domain / Entity / Application / Infrastructure / UI` | Readable boilerplate; simple deptrac rules |
-| 28 | PrimeVue styling | **Styled mode (Aura)** + `tailwindcss-primeui` | Officially recommended pairing; far less work than unstyled mode |
+| 28 | PrimeVue styling | **Styled mode (Aura)** + `tailwindcss-primeui` (PrimeVue **4.5.5**, see #62) | Officially recommended pairing; far less work than unstyled mode |
 | 29 | Admin location | Separate **`admin.shop.test`** host with a store switcher | One entry point for global staff |
 | 30 | No tenant | **Fail closed**: unknown host → 404; tenant queries without a store return nothing; `runAsPlatform()` to opt out | Safety first against data leaks |
 | 31 | Demo data | Three **MyOil's** shops in **one country (NL, EUR)**: Auto, Industrie, Agri & Marine *(changed 2026-09-21 from NL/DE/PL)* | One country for the demo, several shops |
@@ -62,8 +62,15 @@ adding the date and reason. Don't silently diverge in code.
 | 55 | Cancel vs refund | **Before shipping → `cancel`** (staff; the full refund is issued automatically first). **After shipping → `refund`** (from `shipped`/`delivered`, mainly after delivery). No overlap | One clear rule for staff and customers |
 | 56 | Entity location | **`src/Entity`** (`App\Entity`), the Symfony standard; its own deptrac layer (Application and Infrastructure may use it; it may use only Domain) | What Symfony docs and `make:entity` expect; least surprise |
 | 57 | Frontend language | Plain **JavaScript** (ES modules) with JSDoc types on the API layer; no TypeScript | Matches the spec ("pure JavaScript") |
-| 58 | VAT rounding | VAT is calculated **per line** and rounded **half-up** to cents; order VAT = sum of line VAT *(Phase 2, please confirm)* | Matches what each order line snapshots; totals always add up |
-| 59 | Coupon calculation | Percentage coupons take the % of the **items net total** (before shipping); the discount is split over lines in proportion to their net (largest-remainder, never loses a cent) and taken off **before VAT** *(Phase 2, please confirm)* | Each line's VAT is computed on its discounted net, as tax rules require |
-| 60 | Free-shipping threshold | Compared with the **order value incl. VAT after discount** ("free shipping over €100" as customers read it) *(Phase 2, please confirm)* | Customers see gross prices |
+| 58 | VAT rounding | VAT is calculated **per line** and rounded **half-up** to cents; order VAT = sum of line VAT *(Phase 2, confirmed 2026-09-21)* | Matches what each order line snapshots; totals always add up |
+| 59 | Coupon calculation | Percentage coupons take the % of the **items net total** (before shipping); the discount is split over lines in proportion to their net (largest-remainder, never loses a cent) and taken off **before VAT** *(Phase 2, confirmed 2026-09-21)* | Each line's VAT is computed on its discounted net, as tax rules require |
+| 60 | Free-shipping threshold | Compared with the **order value incl. VAT after discount** ("free shipping over €100" as customers read it) *(Phase 2, confirmed 2026-09-21)* | Customers see gross prices |
 | 61 | Rounding for price per litre | pack price × 1000 / volume in ml, rounded half-up once *(Phase 2)* | Exact; e.g. €1,489.00 / 208 L = €7.16 |
 
+
+| 62 | PrimeVue version | **PrimeVue 4.5.5 + @primeuix/themes 2.0.3, pinned exactly** (MIT). PrimeVue 5 became commercial (license key; free Community License needs yearly renewal) *(2026-09-22)* | Free open source, no watermark; can move to 5 later with a licence |
+| 63 | CSRF tokens | **Session-based** tokens: forms use Symfony's form CSRF; the JSON API needs `X-CSRF-Token` (token id `api`); `GET /api/csrf-token` for a fresh one; 419 when missing or expired | Fits decision #22; the stateless mode needed a JS helper we don't use |
+| 64 | Staff login page | Built in **Phase 3** (Twig + Bootstrap, CSRF, 5 attempts / 15 min), together with the admin SPA shell | The admin shell needs it; customer login stays in Phase 5 |
+| 65 | Browser tests | **Playwright** with the installed Chrome against PHP's built-in server (`*.shop.test` mapped in Chrome); local for now, CI in Phase 9 | No browser download; independent of Herd |
+| 66 | Maintenance mode | `bin/console app:maintenance on|off` (flag file, branded 503 with Retry-After) | Simple, no deployment tooling needed yet |
+| 67 | Dependency licences | New dependencies must be MIT / BSD / ISC / Apache-2.0; check the licence before adding a package | PrimeVue 5 showed a licence can change between major versions |

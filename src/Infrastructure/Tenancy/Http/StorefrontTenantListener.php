@@ -9,7 +9,6 @@ use App\Infrastructure\Tenancy\AdminHost;
 use App\Infrastructure\Tenancy\TenantContext;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -21,8 +20,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 #[AsEventListener(event: KernelEvents::REQUEST, priority: 40)]
 final readonly class StorefrontTenantListener
 {
-    /** Framework paths that work without a store (profiler, toolbar, error previews, Vite dev proxy). */
-    private const SKIPPED_PATH_PREFIXES = ['/_', '/build/'];
+    /** Developer tools that work without a store (profiler, toolbar, Vite dev proxy). Error previews (/_error) stay branded. */
+    private const SKIPPED_PATH_PREFIXES = ['/_profiler', '/_wdt', '/build/'];
 
     public function __construct(
         private StoreDomainRepository $storeDomains,
@@ -50,7 +49,10 @@ final readonly class StorefrontTenantListener
 
         $domain = $this->storeDomains->findOneByHost($host);
         if (null === $domain || !$domain->getStore()->isActive()) {
-            throw new NotFoundHttpException(sprintf('No active store is configured for host "%s".', $host));
+            if (str_starts_with($request->getPathInfo(), '/_error/')) {
+                return; // dev error-page preview on an unknown host: show the neutral "Store not found" page
+            }
+            throw StoreNotFoundHttpException::forHost($host);
         }
 
         $this->tenantContext->useStore($domain->getStore());

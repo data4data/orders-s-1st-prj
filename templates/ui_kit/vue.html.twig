@@ -1,0 +1,7 @@
+{% extends 'vue/base.html.twig' %}
+
+{% block title %}{{ 'ui_kit.title'|trans }} (Vue){% endblock %}
+
+{% block body %}
+    <div data-vue-page="UiKit" data-props="{{ {statuses: statuses}|json_encode }}"></div>
+{% endblock %}

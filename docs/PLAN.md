@@ -53,23 +53,25 @@ All in `src/Domain`, plain PHP (+ `brick/math` for exact decimals), no Symfony o
 7. Done: `Customer\AddressBookPolicy` (at least one billing and one delivery address; defaults must fit their role).
 8. Done: **Tests: 81 unit tests, 100 % line coverage of `src/Domain`** (294 / 294), measured with pcov and enforced in CI by `bin/check-domain-coverage.php`. Test suites are now split into `unit`, `integration` and `functional`.
 
-## Phase 3 — UI foundation (both stacks) — *new*
+## Phase 3 — UI foundation (both stacks) — **Done** (branch `feature/ui-foundation`)
 
-Everything in [pages.html → UI standards / Error handling](diagrams/pages.html) is built **once per stack**, before any real page:
+Everything in [pages.html → UI standards / Error handling](diagrams/pages.html) is built **once per stack** and shown on the dev-only UI kit pages (`/ui-kit`, `/ui-kit/vue`):
 
-1. Base layouts `templates/bootstrap/base.html.twig` and `templates/vue/base.html.twig` (+ `admin.html.twig`). Per-store branding is injected as CSS variables and mapped to Bootstrap, Tailwind and PrimeVue.
-2. Shared **header and footer**: a Twig partial and a Vue component, fed with the same data (category tree, store info, cart count).
-3. **Toasts**: jQuery `notify()` + Bootstrap Toast, and `useNotify()` + PrimeVue Toast. Flash messages are rendered as toasts.
-4. **Form fields**: the Symfony `bootstrap_5_layout` form theme with customisations, and a Vue `<FormField>` component. Error summary component for long forms.
-5. **Confirmation dialog**: `confirmAction()` (Bootstrap modal) and `useConfirmAction()` (PrimeVue ConfirmDialog), with identical options.
-6. **Unsaved changes guard**: `<form data-unsaved-guard>` (jQuery) and `useUnsavedChanges()` (Vue Router + `beforeunload`).
-7. **API layer**: problem+json responses from Symfony (exception listener; validation → 422 `violations`; CSRF → 419; rate limit → 429 with `Retry-After`). Client helpers (`ApiClient`, jQuery `api()`) with the full status-handling matrix, retries, timeout and offline banner.
-8. **Error pages**: 404, 403, 419, 429, 500 (reference code), 503, and store-not-found. An `X-Request-Id` listener and Monolog processor.
-9. **Rate limiter** configuration for every endpoint listed in pages.html.
-10. **Translations**: Symfony `translations/messages.en.yaml` and `vue-i18n` `en.json`. No hard-coded UI text (enforced by a lint rule).
-11. Loading skeletons, button-spinner directive, empty-state component.
-12. **Icons**: a semantic icon map (success, info, warning, error, delete, edit…) implemented as a Twig `icon()` helper over `ux_icon('lucide:…')` and a Vue `<AppIcon>` over `lucide-vue-next`. PrimeVue icons are overridden and the `primeicons` font is not loaded. A lint check fails on emoji characters in templates, components and translations.
-13. **Tests:** Playwright smoke tests for the toast, validation, confirmation and unsaved-changes flows on one Bootstrap page and one Vue page.
+1. Done: base layouts `templates/bootstrap/base.html.twig`, `templates/vue/base.html.twig`, `templates/vue/admin.html.twig`. Per-store branding: `BrandPalette` generates `--brand-*` CSS variables (shades 50–950, readable text colour), mapped to Bootstrap (`--bs-primary`, buttons, focus), PrimeVue (Aura preset) and Tailwind; the admin uses the neutral platform palette.
+2. Done: shared **header and footer**: Twig partials and Vue twins fed by one `GetStorefrontLayout` query (store, other shops; categories and cart come in Phases 4–5).
+3. Done: **toasts**: jQuery `notify()` + Bootstrap Toast, `notify()` + PrimeVue Toast (event bus, so any island can raise one); flash messages become toasts.
+4. Done: **form fields**: `bootstrap_5_layout` form theme + jQuery live validation (blur/submit/live, summary, focus), Vue `<FormField>` and `<ErrorSummary>`; server violations are mapped onto the same fields.
+5. Done: **confirmation dialog**: `confirmAction()` in both stacks, identical options.
+6. Done: **unsaved-changes guard**: `<form data-unsaved-guard>` (jQuery) and `useUnsavedChanges()` (links, Vue Router and `beforeunload`).
+7. Done: **API layer**: `ProblemJsonExceptionListener` (problem+json for every error, 422 `violations`, 419 CSRF, 429 `Retry-After`, 500 without internals); session CSRF tokens (`X-CSRF-Token`, `GET /api/csrf-token`); one shared client (`assets/shared/http/api-client.js`) with 419 retry, GET backoff for 502/503/504, 15 s timeout and offline detection; a reaction layer per stack.
+8. Done: **error pages** for every status (one branded template) and the neutral "Store not found"; `X-Request-Id` reference codes in headers, logs, toasts and pages.
+9. Done: **rate limits**: storefront API 300/min per IP, admin API 600/min per user, staff login 5 per 15 min; per-action limiters configured for later phases.
+10. Done: **translations**: `translations/messages.en.yaml` (Twig) and `assets/shared/i18n/en.json` (both frontends); `vue/no-bare-strings-in-template` blocks hard-coded text in Vue.
+11. Done: skeletons (shown only after 300 ms), button spinners (and a countdown after 429), empty-state component, offline banner.
+12. Done: **icons**: semantic map `assets/shared/icons.json` → Twig `icon()` (UX Icons, locked locally), jQuery `icon()` (lucide) and Vue `<AppIcon>` (lucide-vue-next); `npm run check:icons` checks all three stay in sync.
+13. Done: **tests:** 122 PHP tests (incl. problem+json, CSRF, request id, branded error pages, admin login, maintenance) and **16 Playwright browser tests** for both stacks and the admin (run locally with `npx playwright test`; not in CI yet, it needs the app and demo data running — planned for Phase 9).
+14. Done (moved forward from Phase 5): **staff login page** (Twig + Bootstrap, CSRF, throttling) and the **admin SPA shell**: sidebar navigation (Settings, Platform for super-admins), store switcher with the read-only "All stores" view, user menu with logout, in-app 404, placeholder pages for later phases.
+15. Done: **maintenance mode** (`bin/console app:maintenance on|off`, branded 503).
 
 ## Phase 4 — Catalog
 
@@ -81,7 +83,7 @@ Everything in [pages.html → UI standards / Error handling](diagrams/pages.html
 
 ## Phase 5 — Customers, cart, checkout & payment port
 
-1. `Customer` + `CustomerAddress` (flags, defaults, B2B `company`/`vat_id`). **Registration (Twig) with the required billing address and "delivery same as billing"**, login, password reset.
+1. `Customer` + `CustomerAddress` (flags, defaults, B2B `company`/`vat_id`). **Customer registration (Twig) with the required billing address and "delivery same as billing"**, customer login, password reset (the staff login page already exists since Phase 3).
 2. Customer account (Vue): Dashboard, Orders, Addresses (the address rule enforced in UI and domain), Profile & security.
 3. Draft order as the cart: `AddToCart`, `UpdateCartLine`, `RemoveCartLine`, `ApplyCoupon` handlers. Mini-cart drawer and cart page.
 4. `ShippingMethod` + calculator registry. `Coupon` (percentage `DECIMAL(5,2)` or fixed amount).
@@ -126,7 +128,7 @@ manager who is a member of Auto and Industrie only. Built with Foundry factories
 
 1. Tenant-leak test suite across all repositories and API endpoints.
 2. The CSS isolation check fails the build on any leak.
-3. Error-matrix tests: each status (400 … 504, 429, 419) produces the documented reaction in both stacks.
+3. Error-matrix tests: each status (400 … 504, 429, 419) produces the documented reaction in both stacks; run the Playwright suite in CI (app + MySQL + demo data in the workflow).
 4. Security review (CSRF on the JSON API, admin roles per store, webhook signatures, rate limits).
 5. README: local setup (Herd + Docker), demo hosts and logins, and how to add a payment gateway, discount rule or shipping calculator.
 

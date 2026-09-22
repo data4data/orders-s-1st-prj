@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\UI\Http\Admin;
 
-use App\UI\Http\ProblemResponse;
+use App\UI\Http\Error\ProblemDetails;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -20,7 +20,7 @@ final class AdminAuthController extends AbstractController
     {
         $user = $this->getUser();
         if (null === $user) {
-            return ProblemResponse::create(401, 'Send {"username": "...", "password": "..."} as JSON.');
+            return ProblemDetails::response(401, 'Send {"username": "...", "password": "..."} as JSON.');
         }
 
         return $this->json(['email' => $user->getUserIdentifier(), 'roles' => $user->getRoles()]);

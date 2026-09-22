@@ -1,11 +1,9 @@
-# Enable stateless CSRF protection for forms and logins/logouts
+# Session-based CSRF tokens (decision #22: session cookie + CSRF).
+#  - Twig forms use the "submit" token id automatically.
+#  - The JSON API expects the "api" token in the X-CSRF-Token header (ApiCsrfListener);
+#    pages expose it in <meta name="csrf-token">, and GET /api/csrf-token returns a fresh one.
 framework:
     form:
         csrf_protection:
             token_id: submit
-
-    csrf_protection:
-        stateless_token_ids:
-            - submit
-            - authenticate
-            - logout
+    csrf_protection: true

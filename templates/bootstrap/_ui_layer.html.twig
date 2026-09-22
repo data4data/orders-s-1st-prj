@@ -1,0 +1,18 @@
+{# Shared UI layer used by assets/bootstrap/lib: toast stack, offline banner and the one confirmation dialog. #}
+<div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+<div id="offline-banner" class="offline-banner" role="status" hidden>{{ icon('offline') }} <span data-i18n="offline.banner"></span></div>
+<div class="modal fade" id="confirm-modal" tabindex="-1" aria-labelledby="confirm-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h2 class="modal-title fs-5 fw-bold" id="confirm-modal-title"></h2>
+                <button type="button" class="btn-close" data-confirm="cancel" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2" id="confirm-modal-body"></div>
+            <div class="modal-footer bg-body-tertiary">
+                <button type="button" class="btn btn-outline-secondary" data-confirm="cancel"></button>
+                <button type="button" class="btn btn-danger" data-confirm="accept"></button>
+            </div>
+        </div>
+    </div>
+</div>

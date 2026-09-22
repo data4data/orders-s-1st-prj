@@ -17,4 +17,11 @@ interface StoreRepositoryInterface
 
     /** @return list<Store> */
     public function findAllActive(): array;
+
+    /**
+     * Primary host of every active store, e.g. [store id => "myoils-auto.shop.test"].
+     *
+     * @return array<int, string>
+     */
+    public function findPrimaryHosts(): array;
 }

@@ -1,0 +1,87 @@
+{% extends 'bootstrap/base.html.twig' %}
+
+{% block title %}{{ 'ui_kit.title'|trans }} (Bootstrap){% endblock %}
+
+{% block body %}
+<div class="container py-4 ui-kit">
+    <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2">
+        <h1 class="h3 mb-1">{{ 'ui_kit.title'|trans }} <span class="badge text-bg-secondary align-middle fs-6">Bootstrap + jQuery</span></h1>
+        <a href="/ui-kit/vue">{{ icon('chevron-right') }} Same page in Vue + PrimeVue</a>
+    </div>
+    <p class="text-body-secondary">{{ 'ui_kit.intro'|trans }}</p>
+
+    <section class="card mb-4"><div class="card-body">
+        <h2 class="h5">1. Toasts</h2>
+        <p class="small text-body-secondary">Success and info close after 4 s (hover pauses). Warnings and errors stay until closed. At most 3 are visible.</p>
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-outline-success" data-demo-toast="success">Success</button>
+            <button class="btn btn-outline-primary" data-demo-toast="info">Info</button>
+            <button class="btn btn-outline-warning" data-demo-toast="warning">Warning</button>
+            <button class="btn btn-outline-danger" data-demo-toast="error">Error (with reference)</button>
+        </div>
+    </div></section>
+
+    <section class="card mb-4"><div class="card-body">
+        <h2 class="h5">2. Form fields and validation</h2>
+        <p class="small text-body-secondary">Checked when you leave a field and on submit; after the first error it re-checks while you type. The second button skips the browser checks to show the server's errors in the same place.</p>
+        {{ form_start(form, {attr: {novalidate: 'novalidate', 'data-validate': '', 'data-unsaved-guard': '', 'data-error-summary': '#contact-summary'}}) }}
+            <div id="contact-summary"></div>
+            <div class="row g-3">
+                <div class="col-md-6">{{ form_row(form.name) }}</div>
+                <div class="col-md-6">{{ form_row(form.email) }}</div>
+                <div class="col-md-6">{{ form_row(form.postcode) }}</div>
+                <div class="col-12">{{ form_row(form.message) }}</div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <button class="btn btn-primary" type="submit" data-busy-on-submit>{{ 'ui_kit.form.send'|trans }}</button>
+                <button class="btn btn-outline-secondary" type="submit" formnovalidate>{{ 'ui_kit.form.send_without_checks'|trans }}</button>
+            </div>
+        {{ form_end(form) }}
+    </div></section>
+
+    <section class="card mb-4"><div class="card-body">
+        <h2 class="h5">3. Confirmation dialog and unsaved changes</h2>
+        <p class="small text-body-secondary">Every destructive action asks first. Type something in the form above, then click the link: the unsaved-changes dialog appears (closing the tab shows the browser's own prompt).</p>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <button class="btn btn-outline-danger" data-demo-confirm>{{ icon('delete') }} Delete address "Workshop"</button>
+            <a href="/ui-kit/vue">Go to the Vue UI kit</a>
+        </div>
+    </div></section>
+
+    <section class="card mb-4"><div class="card-body">
+        <h2 class="h5">4. Loading and empty states</h2>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <button class="btn btn-outline-primary" data-demo-load="items">Load products</button>
+            <button class="btn btn-outline-primary" data-demo-load="empty">Load an empty list</button>
+        </div>
+        <div id="demo-list" class="border rounded p-3 bg-body-tertiary small text-body-secondary">Click a button to load.</div>
+    </div></section>
+
+    <section class="card mb-4"><div class="card-body">
+        <h2 class="h5">5. Error handling</h2>
+        <p class="small text-body-secondary">Each button calls a demo endpoint that answers with that status; the reaction follows the matrix in pages.html. To try offline, switch the browser to offline in the developer tools (Network tab).</p>
+        <div class="d-flex flex-wrap gap-2">
+            {% for code in statuses %}
+                <button class="btn btn-sm btn-outline-secondary" data-demo-status="{{ code }}">{{ code }}</button>
+            {% endfor %}
+            <button class="btn btn-sm btn-outline-secondary" data-demo-validation>422 (validation)</button>
+            <button class="btn btn-sm btn-outline-warning" data-demo-limited>Real rate limit (3/min)</button>
+            <button class="btn btn-sm btn-outline-warning" data-demo-timeout>Timeout (15 s)</button>
+            <button class="btn btn-sm btn-outline-danger" data-demo-js-error>JavaScript error</button>
+        </div>
+        <p class="small mt-3 mb-0">Branded error pages:
+            {% for code in [404, 403, 419, 429, 500, 503] %}<a href="/_error/{{ code }}">{{ code }}</a>{{ not loop.last ? ' · ' }}{% endfor %}
+            · <a href="https://unknown.shop.test/_error/404">store not found</a>
+        </p>
+    </div></section>
+
+    <section class="card mb-4"><div class="card-body">
+        <h2 class="h5">6. Icons (Lucide)</h2>
+        <div class="d-flex flex-wrap gap-3 fs-5">
+            {% for name in ['success', 'info', 'warning', 'error', 'delete', 'edit', 'add', 'search', 'cart', 'account', 'document', 'shipping', 'loading', 'store'] %}
+                <span class="d-inline-flex align-items-center gap-1 small">{{ icon(name) }} <span class="text-body-secondary">{{ name }}</span></span>
+            {% endfor %}
+        </div>
+    </div></section>
+</div>
+{% endblock %}

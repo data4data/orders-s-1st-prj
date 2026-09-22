@@ -1,5 +1,8 @@
 twig:
     file_name_pattern: '*.twig'
+    # Symfony forms render with Bootstrap 5 markup: errors appear as .is-invalid + .invalid-feedback
+    # under each field (pages.html → UI standards → Form fields).
+    form_themes: ['bootstrap_5_layout.html.twig']
 
 when@test:
     twig:

@@ -1,0 +1,153 @@
+{
+    "common": {
+        "close": "Close",
+        "cancel": "Cancel",
+        "retry": "Try again",
+        "loading": "Loading…",
+        "optional": "(optional)"
+    },
+    "offline": {
+        "banner": "You're offline. Changes can't be saved until the connection is back.",
+        "back": "You're back online."
+    },
+    "errors": {
+        "bad_request": "Something is wrong with this request.",
+        "unauthenticated_title": "Your session expired",
+        "unauthenticated": "Please log in again. What you typed is kept.",
+        "forbidden_title": "No access",
+        "forbidden": "You do not have permission to do this.",
+        "not_found": "We couldn't find what you were looking for.",
+        "conflict_title": "This was changed in the meantime",
+        "conflict": "Someone else changed this while you were working on it. Reload to see the latest version.",
+        "too_large": "The upload is too large.",
+        "csrf_title": "Your session expired",
+        "csrf": "Please try again.",
+        "validation_title": "Please check the form",
+        "validation": "Some fields are not filled in correctly.",
+        "rate_limited_title": "Too many attempts",
+        "rate_limited": "Please wait {seconds} s before trying again.",
+        "server_title": "Something went wrong",
+        "server": "We couldn't complete this. Please try again.",
+        "unavailable_title": "The shop is not reachable",
+        "unavailable": "The server is not available right now. Please try again in a moment.",
+        "retrying": "The server is busy. Trying again in {seconds} s…",
+        "timeout_title": "This is taking too long",
+        "timeout": "The server did not answer in time. Please try again.",
+        "network": "The request could not be sent. Check your connection.",
+        "js_title": "Something went wrong on this page",
+        "js": "Reload the page and try again.",
+        "reference": "Reference: {code}"
+    },
+    "dialog": {
+        "reload": "Reload",
+        "log_in": "Log in again",
+        "leave_title": "Leave without saving?",
+        "leave_body": "You have unsaved changes on this page. If you leave now, they will be lost.",
+        "stay": "Stay on page",
+        "leave": "Leave without saving"
+    },
+    "form": {
+        "summary": "Please fix {count} field(s):",
+        "required": "This field is required.",
+        "email": "Enter a full email address, e.g. jan@example.com.",
+        "pattern": "The format is not right.",
+        "minlength": "Write at least {min} characters.",
+        "maxlength": "Use at most {max} characters.",
+        "wait": "Wait {seconds} s"
+    },
+    "layout": {
+        "other_shops": "Other MyOil's shops",
+        "search_placeholder": "Search products, SAE, specifications…",
+        "search": "Search",
+        "account": "My account",
+        "cart": "Cart",
+        "footer": {
+            "about": "About",
+            "faq": "FAQ",
+            "contact": "Contact",
+            "shipping_info": "Shipping info",
+            "safety_data_sheets": "Safety data sheets",
+            "terms": "Terms",
+            "privacy": "Privacy",
+            "rights": "All prices include VAT unless stated otherwise."
+        }
+    },
+    "admin": {
+        "title": "Admin",
+        "nav": {
+            "dashboard": "Dashboard",
+            "orders": "Orders",
+            "catalog": "Catalog",
+            "products": "Products",
+            "categories": "Categories",
+            "attributes": "Attributes",
+            "customers": "Customers",
+            "coupons": "Coupons",
+            "settings": "Settings",
+            "platform": "Platform",
+            "super_admin": "Super-admin",
+            "ui_kit": "UI kit (dev)"
+        },
+        "store_switcher": {
+            "label": "Store",
+            "placeholder": "Pick a store",
+            "all_stores": "All stores (read-only)",
+            "read_only": "Read-only",
+            "switched": "Now working in {store}.",
+            "switched_all": "Viewing all stores. Changes are disabled."
+        },
+        "user": {
+            "log_out": "Log out",
+            "menu": "Account menu"
+        },
+        "coming_soon": {
+            "title": "{page} arrives in phase {phase}",
+            "text": "This screen is part of the plan (docs/PLAN.md) and is built in a later phase.",
+            "pick_store_title": "Pick a store to start",
+            "pick_store_text": "Use the store switcher at the top to choose the shop you want to work in."
+        },
+        "not_found": {
+            "title": "This admin page does not exist",
+            "text": "Check the address or use the menu on the left.",
+            "back": "Go to the dashboard"
+        },
+        "brand": "MyOil's Admin"
+    },
+    "empty": {
+        "no_items_title": "No products match",
+        "no_items_text": "Try other filters, or clear them to see everything.",
+        "clear": "Clear filters"
+    },
+    "ui_kit": {
+        "title": "UI kit",
+        "intro": "Every UI standard from docs/diagrams/pages.html, working. Development only.",
+        "toasts": {
+            "success_title": "Address saved",
+            "success": "Your delivery address was updated.",
+            "info_title": "Coupon applied",
+            "info": "10% off your order.",
+            "warning_title": "Only 3 left",
+            "warning": "MyOil's Synth Pro 5W-30 · 208 L is almost sold out.",
+            "error_title": "Something went wrong",
+            "error": "We couldn't save your changes."
+        },
+        "confirm": {
+            "title": "Delete address \"Workshop\"?",
+            "body": "The address is removed from your address book. Orders that already used it keep their copy.",
+            "accept": "Delete address",
+            "cancel": "Keep address",
+            "deleted": "Address \"Workshop\" deleted.",
+            "kept": "Nothing was deleted."
+        },
+        "form": {
+            "name": "Name",
+            "email": "Email",
+            "postcode": "Postcode",
+            "postcode_help": "Dutch format, e.g. 1012 AB",
+            "message": "Message",
+            "send": "Send",
+            "send_without_checks": "Send without browser checks"
+        },
+        "limited_ok": "Accepted."
+    }
+}

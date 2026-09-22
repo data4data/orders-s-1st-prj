@@ -1,0 +1,94 @@
+import {
+    ArrowLeft,
+    Check,
+    ChevronDown,
+    ChevronRight,
+    CircleAlert,
+    CircleCheck,
+    CircleX,
+    Clock,
+    Droplet,
+    FileText,
+    Globe,
+    House,
+    Info,
+    LayoutDashboard,
+    LoaderCircle,
+    Lock,
+    LogOut,
+    Mail,
+    Menu,
+    Package,
+    PackageOpen,
+    Pencil,
+    Phone,
+    Plus,
+    Receipt,
+    RefreshCw,
+    Search,
+    Settings,
+    ShoppingCart,
+    Store,
+    Tag,
+    Trash2,
+    TriangleAlert,
+    Truck,
+    User,
+    Users,
+    WifiOff,
+    X,
+} from 'lucide-vue-next';
+import iconMap from '../../shared/icons.json';
+
+/** Lucide components by Lucide name. Every icon in assets/shared/icons.json must be here (npm run check:icons). */
+const COMPONENTS = {
+    'arrow-left': ArrowLeft,
+    'check': Check,
+    'chevron-down': ChevronDown,
+    'chevron-right': ChevronRight,
+    'circle-alert': CircleAlert,
+    'circle-check': CircleCheck,
+    'circle-x': CircleX,
+    'clock': Clock,
+    'droplet': Droplet,
+    'file-text': FileText,
+    'globe': Globe,
+    'house': House,
+    'info': Info,
+    'layout-dashboard': LayoutDashboard,
+    'loader-circle': LoaderCircle,
+    'lock': Lock,
+    'log-out': LogOut,
+    'mail': Mail,
+    'menu': Menu,
+    'package': Package,
+    'package-open': PackageOpen,
+    'pencil': Pencil,
+    'phone': Phone,
+    'plus': Plus,
+    'receipt': Receipt,
+    'refresh-cw': RefreshCw,
+    'search': Search,
+    'settings': Settings,
+    'shopping-cart': ShoppingCart,
+    'store': Store,
+    'tag': Tag,
+    'trash-2': Trash2,
+    'triangle-alert': TriangleAlert,
+    'truck': Truck,
+    'user': User,
+    'users': Users,
+    'wifi-off': WifiOff,
+    'x': X,
+};
+
+/**
+ * @param {string} name semantic name from assets/shared/icons.json
+ */
+export function iconComponent(name) {
+    const component = COMPONENTS[iconMap[name]];
+    if (!component) {
+        throw new Error(`Unknown icon "${name}". Add it to assets/shared/icons.json and assets/vue/shared/icons.js.`);
+    }
+    return component;
+}

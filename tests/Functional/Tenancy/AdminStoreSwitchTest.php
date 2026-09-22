@@ -38,6 +38,17 @@ final class AdminStoreSwitchTest extends WebTestCase
         $this->client->request('GET', self::ADMIN.'/api/admin/stores');
 
         self::assertResponseStatusCodeSame(401);
+        self::assertResponseHeaderSame('Content-Type', 'application/problem+json');
+    }
+
+    public function testSwitchingWithoutCsrfTokenIsRefusedWith419(): void
+    {
+        $this->loginAs($this->managerOf($this->auto));
+
+        $this->client->jsonRequest('PUT', self::ADMIN.'/api/admin/stores/current', ['store' => $this->auto->getPublicId()->toRfc4122()]);
+
+        self::assertResponseStatusCodeSame(419);
+        self::assertSame(419, $this->json()['status']);
     }
 
     public function testStaffCanLogInWithJson(): void
@@ -129,7 +140,11 @@ final class AdminStoreSwitchTest extends WebTestCase
 
     private function switchTo(string $store): void
     {
-        $this->client->jsonRequest('PUT', self::ADMIN.'/api/admin/stores/current', ['store' => $store]);
+        // State-changing API calls need the CSRF token (ApiCsrfListener).
+        $this->client->request('GET', self::ADMIN.'/api/csrf-token');
+        $token = json_decode((string) $this->client->getResponse()->getContent(), true, 512, \JSON_THROW_ON_ERROR)['token'];
+
+        $this->client->jsonRequest('PUT', self::ADMIN.'/api/admin/stores/current', ['store' => $store], ['HTTP_X_CSRF_TOKEN' => $token]);
     }
 
     /**
