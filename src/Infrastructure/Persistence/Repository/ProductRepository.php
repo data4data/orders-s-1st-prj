@@ -31,6 +31,11 @@ final class ProductRepository extends ServiceEntityRepository implements Product
         return $this->findOneBy(['slug' => $slug, 'isActive' => true]);
     }
 
+    public function findVariantByPublicId(Uuid $publicId): ?ProductVariant
+    {
+        return $this->getEntityManager()->getRepository(ProductVariant::class)->findOneBy(['publicId' => $publicId]);
+    }
+
     public function slugExists(string $slug, ?int $exceptProductId = null): bool
     {
         $qb = $this->createQueryBuilder('p')->select('COUNT(p.id)')->where('p.slug = :slug')->setParameter('slug', $slug);

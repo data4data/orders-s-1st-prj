@@ -7,7 +7,7 @@ import { notify } from './lib/notify.js';
 import { confirmAction } from './lib/confirm.js';
 import { api, handleApiError } from './lib/api.js';
 import { withBusy } from './lib/busy.js';
-import { installValidation, installBusyOnSubmit } from './lib/forms.js';
+import { installValidation, installBusyOnSubmit, installSectionToggles } from './lib/forms.js';
 import { installUnsavedGuard } from './lib/unsaved-guard.js';
 import { installOfflineBanner } from './lib/offline.js';
 import { installGlobalErrorHandler } from './lib/global-errors.js';
@@ -24,6 +24,7 @@ $(() => {
     document.querySelectorAll('[data-i18n]').forEach((element) => { element.textContent = t(element.getAttribute('data-i18n') ?? ''); });
     document.querySelectorAll('form[data-validate]').forEach((form) => installValidation(/** @type {HTMLFormElement} */ (form)));
     document.querySelectorAll('form:not([data-validate])').forEach((form) => installBusyOnSubmit(/** @type {HTMLFormElement} */ (form)));
+    installSectionToggles();
     installUnsavedGuard();
 
     // Server flash messages appear as the same toasts.

@@ -16,6 +16,7 @@ import { api, handleApiError } from '../shared/api.js';
 import { notify } from '../shared/notify.js';
 import { t } from '../shared/i18n.js';
 import { formatMoney } from '../../shared/format.js';
+import { addToCart as addToCartApi, cartState } from '../shared/cart.js';
 
 // Product page (docs/diagrams/pages.html → Catalog & product): pack-size selector with price per
 // litre, gross price large and net small (decision #45), stock, tabs and related products.
@@ -51,7 +52,19 @@ onMounted(async () => {
     }
 });
 
-const addToCart = () => notify({ type: 'info', text: t('product.cart_coming') });
+const adding = ref(false);
+async function addToCart() {
+    adding.value = true;
+    try {
+        await addToCartApi(selected.value.publicId, quantity.value);
+        notify({ type: 'success', text: t('product.added', { name: `${product.value.name} ${selected.value.name}` }) });
+        cartState.drawerOpen = true;
+    } catch (error) {
+        handleApiError(error);
+    } finally {
+        adding.value = false;
+    }
+}
 </script>
 
 <template>
@@ -101,7 +114,7 @@ const addToCart = () => notify({ type: 'info', text: t('product.cart_coming') })
                                 <template #incrementicon><AppIcon name="add" /></template>
                                 <template #decrementicon><AppIcon name="remove" /></template>
                             </InputNumber>
-                            <Button :disabled="selected.available === 0" @click="addToCart"><AppIcon name="cart" /> {{ $t('product.add_to_cart') }}</Button>
+                            <Button :disabled="selected.available === 0" :loading="adding" @click="addToCart"><AppIcon name="cart" /> {{ $t('product.add_to_cart') }}</Button>
                         </div>
                         <div class="mt-3 flex flex-wrap gap-4 text-xs text-surface-500">
                             <span><AppIcon name="shipping" /> {{ $t('product.free_shipping') }}</span>

@@ -6,6 +6,7 @@ layout:
     search_placeholder: Search products, SAE, specifications…
     search: Search
     account: My account
+    log_in: Log in
     cart: Cart
     contact_us: Contact us
     footer:
@@ -77,3 +78,80 @@ ui_kit:
         send: Send
         send_without_checks: Send without browser checks
         sent: Thanks, your message was sent.
+
+login:
+    title: Log in
+    submit: Log in
+    forgot: Forgot your password?
+    no_account: New here?
+    register: Create an account
+
+register:
+    title: Create your account
+    intro: Save your addresses, follow your orders and check out faster.
+    account: Your details
+    email: Email
+    password: Password
+    password_help: At least 8 characters.
+    billing: Billing address
+    delivery: Delivery address
+    delivery_same: Deliver to the billing address
+    accept_terms: I accept the terms and conditions
+    submit: Create account
+    have_account: Already have an account?
+    welcome: Welcome! Your account is ready.
+
+address:
+    first_name: First name
+    last_name: Last name
+    company: Company
+    vat_id: VAT number
+    vat_id_help: For business customers, e.g. NL123456789B01.
+    street: Street
+    house_number: House number
+    postcode: Postcode
+    city: City
+    country: Country
+    phone: Phone
+    business: Ordering for a business?
+
+password_reset:
+    title: Forgot your password?
+    intro: Enter your email address and we will send you a link to choose a new password.
+    send: Send reset link
+    back: Back to log in
+    sent: If an account exists for this address, we have sent a reset link. Check your inbox.
+    new_title: Choose a new password
+    new_password: New password
+    repeat_password: Repeat new password
+    save: Save password
+    done: Your password has been changed.
+    expired: This link has expired or was already used.
+    request_new: Request a new link
+
+email:
+    password_reset:
+        greeting: Hello %name%,
+        intro: 'You asked to reset your password for %store%. Click the link below to choose a new one:'
+        button: Choose a new password
+        expiry: The link works for one hour and only once.
+        ignore: If you did not ask for this, you can ignore this email.
+
+fake_gateway:
+    title: Test payment
+    notice: This is the local test payment provider. No money is moved.
+    order: Order %number%
+    amount: Amount to pay
+    pay: Pay now
+    fail: Simulate a failed payment
+    back: Back to the shop
+    invalid: This payment link is invalid or has expired.
+
+cart:
+    title: Your cart
+checkout:
+    title: Checkout
+account:
+    title: My account
+order:
+    confirmation_title: Order confirmation

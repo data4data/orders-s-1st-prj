@@ -42,7 +42,11 @@
                 </div>
             </form>
             <div class="d-flex align-items-center gap-3 fs-5">
-                <a class="text-reset" href="/account" aria-label="{{ 'layout.account'|trans }}">{{ icon('account') }}</a>
+                {% if layout.customerName %}
+                    <a class="text-reset text-decoration-none fs-6 fw-semibold" href="/account" aria-label="{{ 'layout.account'|trans }}">{{ icon('account') }} {{ layout.customerName }}</a>
+                {% else %}
+                    <a class="text-reset text-decoration-none fs-6 fw-semibold" href="/login">{{ icon('account') }} {{ 'layout.log_in'|trans }}</a>
+                {% endif %}
                 <a class="text-reset position-relative" href="/cart" aria-label="{{ 'layout.cart'|trans }}">
                     {{ icon('cart') }}
                     {% if layout.cartItemCount > 0 %}<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-accent">{{ layout.cartItemCount }}</span>{% endif %}

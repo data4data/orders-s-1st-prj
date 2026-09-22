@@ -21,6 +21,7 @@ final readonly class StorefrontLayoutView
         public array $otherShops,
         public array $categories,
         public int $cartItemCount,
+        public ?string $customerName = null,
     ) {
     }
 }

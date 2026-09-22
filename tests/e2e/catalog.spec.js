@@ -39,7 +39,8 @@ test('the product page switches pack sizes with gross, net and per-litre prices'
     await expect(page.getByText('VW 504.00/507.00, MB 229.51')).toBeVisible();
 
     await page.getByRole('button', { name: 'Add to cart' }).click();
-    await expect(page.getByText('The cart arrives in phase 5.')).toBeVisible();
+    await expect(page.getByText("MyOil's Synth Pro 5W-30 208 L drum is in your cart.")).toBeVisible();
+    await expect(page.getByTestId('cart-count')).toHaveText('1');
 });
 
 test('a product of another store is not found', async ({ page }) => {

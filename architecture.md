@@ -158,6 +158,19 @@ The mapping lives in one PHP enum (`OrderState`) with `label()` and `badge()` me
 - One `customer_address` row can serve both roles (`usable_for_billing`, `usable_for_shipping`). The
   customer points to a default billing and a default delivery address.
 - **Guests** enter addresses at checkout only. They are snapshotted on the order and not kept.
+- Customers log in on their own shop (`main` firewall, entity provider on `customer` filtered by the
+  tenant filter, which is set from the host before the firewall runs). Password reset links are
+  stateless: signed with the current password hash, valid one hour and only once.
+
+### Cart and checkout
+
+- The **cart is a draft order** (`orders.state = draft`), remembered in the session per shop; a
+  logged-in customer uses their own draft, and a guest cart joins it on login.
+- `OrderPricer` prices the cart and the order being placed with the same code (Domain `LinePricer`,
+  `DiscountCalculator`, `ShippingQuoter`), so the checkout total is exactly what the cart showed.
+  The wizard sends `expectedTotal`; a different server total stops the order.
+- `PlaceOrder` runs in the command bus transaction: stock check (`StockPolicy`), `checkout`
+  transition, stock reservation, line / address / shipping snapshots, order number, payment session.
 
 ## 7. Extension points (SOLID)
 

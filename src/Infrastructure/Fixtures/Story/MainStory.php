@@ -7,6 +7,7 @@ namespace App\Infrastructure\Fixtures\Story;
 use App\Domain\Tenancy\StoreRole;
 use App\Entity\Store;
 use App\Infrastructure\Fixtures\CatalogBuilder;
+use App\Infrastructure\Fixtures\CheckoutBuilder;
 use App\Infrastructure\Fixtures\Factory\CountryFactory;
 use App\Infrastructure\Fixtures\Factory\StaffUserFactory;
 use App\Infrastructure\Fixtures\Factory\StoreDomainFactory;
@@ -17,15 +18,18 @@ use Zenstruck\Foundry\Story;
 
 /**
  * Demo data: three MyOil's shops in the Netherlands with their catalogs (DemoCatalogs), Dutch VAT,
- * and two staff users (password: "password"). Customers and orders are added in Phase 8.
+ * shipping methods and coupons, two staff users and a demo customer (password: "password").
+ * More customers and orders are added in Phase 8.
  *
  * Load with: bin/console foundry:load-fixtures main
  */
 #[AsFixture(name: 'main')]
 final class MainStory extends Story
 {
-    public function __construct(private readonly CatalogBuilder $catalogBuilder)
-    {
+    public function __construct(
+        private readonly CatalogBuilder $catalogBuilder,
+        private readonly CheckoutBuilder $checkoutBuilder,
+    ) {
     }
 
     public function build(): void
@@ -36,9 +40,19 @@ final class MainStory extends Story
         $industrie = $this->shop('myoils-industrie', "MyOil's Industrie", 'IND', '#2B2F36', '#F26B1D');
         $agri = $this->shop('myoils-agri', "MyOil's Agri & Marine", 'AGRI', '#1E4D2B', '#F2C230');
 
+        CountryFactory::belgium();
+        CountryFactory::germany();
         foreach (['myoils-auto' => $auto, 'myoils-industrie' => $industrie, 'myoils-agri' => $agri] as $code => $store) {
             $this->catalogBuilder->build($store, $taxCategories['standard'], DemoCatalogs::all()[$code]);
+            $this->checkoutBuilder->shippingAndCoupons($store, $taxCategories['standard'], pallets: 'myoils-auto' !== $code);
         }
+
+        // The same person has a separate account in each shop (customers are per store, decision #6).
+        $this->checkoutBuilder->customer($auto, CountryFactory::netherlands(), 'jan@example.test', 'Jan', 'de Vries',
+            ['street' => 'Damrak', 'houseNumber' => '1', 'postcode' => '1012 LG', 'city' => 'Amsterdam'],
+            ['label' => 'Garage', 'street' => 'Industrieweg', 'houseNumber' => '12', 'postcode' => '3542 AD', 'city' => 'Utrecht']);
+        $this->checkoutBuilder->customer($industrie, CountryFactory::netherlands(), 'jan@example.test', 'Jan', 'de Vries',
+            ['street' => 'Havenstraat', 'houseNumber' => '8', 'postcode' => '3024 SH', 'city' => 'Rotterdam', 'company' => 'De Vries Techniek B.V.', 'vatId' => 'NL812345678B01']);
 
         StaffUserFactory::new()->superAdmin()->create([
             'email' => 'admin@myoils.test',

@@ -7,6 +7,12 @@ security:
             entity:
                 class: App\Entity\StaffUser
                 property: email
+        # Customers belong to one store: the tenant filter (set from the host before the firewall
+        # runs) limits the lookup to the current shop (decision #6).
+        customers:
+            entity:
+                class: App\Entity\Customer
+                property: email
 
     role_hierarchy:
         ROLE_SUPER_ADMIN: [ROLE_STAFF]
@@ -41,16 +47,34 @@ security:
                 csrf_token_id: api
                 csrf_parameter: _csrf_token
 
-        # Storefront. Customer login (per store) is added in Phase 5.
+        # Storefront customers (Phase 5): Twig login form, 5 failed attempts per 15 minutes.
         main:
             lazy: true
-            provider: staff_users
+            provider: customers
+            entry_point: App\UI\Http\Security\CustomerAuthenticationEntryPoint
+            form_login:
+                login_path: customer_login
+                check_path: customer_login
+                default_target_path: account
+                enable_csrf: true
+                username_parameter: email
+                password_parameter: password
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
+            logout:
+                path: customer_logout
+                target: home
+                enable_csrf: true
+                csrf_token_id: logout
 
     access_control:
         - { path: ^/login$, host: ^admin\., roles: PUBLIC_ACCESS }
         - { path: ^/api/admin/login$, roles: PUBLIC_ACCESS }
         - { path: ^/api/csrf-token$, roles: PUBLIC_ACCESS }
         - { path: ^/api/admin, roles: ROLE_STAFF }
+        - { path: ^/api/account, roles: ROLE_CUSTOMER }
+        - { path: ^/account, host: ^(?!admin\.), roles: ROLE_CUSTOMER }
         # The admin SPA itself: every admin-host page that is not an API call, asset or file
         # (files like /favicon.ico must never become the "return to" page after login).
         - { path: ^/(?!api/|build/|_)[^.]*$, host: ^admin\., roles: ROLE_STAFF }

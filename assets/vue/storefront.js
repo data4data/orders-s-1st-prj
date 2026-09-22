@@ -13,6 +13,10 @@ import StorefrontFooter from './storefront/StorefrontFooter.vue';
 const pages = {
     Catalog: () => import('./pages/CatalogPage.vue'),
     Product: () => import('./pages/ProductPage.vue'),
+    Cart: () => import('./pages/CartPage.vue'),
+    Checkout: () => import('./pages/CheckoutPage.vue'),
+    OrderConfirmation: () => import('./pages/OrderConfirmationPage.vue'),
+    Account: () => import('./pages/AccountPage.vue'),
     UiKit: () => import('./pages/UiKit.vue'),
 };
 const layouts = { StorefrontHeader, StorefrontFooter };
