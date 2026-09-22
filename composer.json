@@ -87,6 +87,10 @@
             "@php bin/console doctrine:database:create",
             "@php bin/console doctrine:migrations:migrate -n",
             "@php bin/console foundry:load-fixtures main --append -n"
+        ],
+        "worker": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php bin/console messenger:consume async scheduler_default -vv"
         ]
     },
     "conflict": {
@@ -115,6 +119,7 @@
         "zenstruck/foundry": "^2.13"
     },
     "scripts-descriptions": {
-        "demo:reset": "Recreate the dev database from the migrations and load the MyOil's demo data"
+        "demo:reset": "Recreate the dev database from the migrations and load the MyOil's demo data",
+        "worker": "Process payment webhooks, emails and scheduled jobs (keep running while testing)"
     }
 }

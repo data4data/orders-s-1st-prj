@@ -25,6 +25,16 @@ final class PaymentRepository extends ServiceEntityRepository implements Payment
         return $this->findOneBy(['order' => $order], ['id' => 'DESC']);
     }
 
+    public function forOrder(Order $order): array
+    {
+        return $this->findBy(['order' => $order], ['id' => 'ASC']);
+    }
+
+    public function findByReference(string $gatewayCode, string $externalReference): ?Payment
+    {
+        return $this->findOneBy(['gatewayCode' => $gatewayCode, 'externalReference' => $externalReference]);
+    }
+
     public function save(Payment $payment): void
     {
         $this->getEntityManager()->persist($payment);

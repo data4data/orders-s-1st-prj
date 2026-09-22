@@ -87,3 +87,10 @@ adding the date and reason. Don't silently diverge in code.
 | 78 | Payment page (Phase 5) | FakeGateway page is a **signed URL** served by the shop; the webhook endpoint verifies signatures now, storing and processing events (capture → `pay`) comes in Phase 6, so orders stay *Awaiting payment* until then | Keeps the phase boundary of the plan |
 | 79 | Workflows | Order and payment state machines are configured in Phase 5 (PlaceOrder applies `checkout`); guards and `completed` listeners follow in Phase 6 | The handler already goes through the workflow |
 | 80 | Countries | Addresses may be in NL, BE, DE (rows in `country`); shipping methods list their allowed countries | Enough for the demo; VAT still follows the store country (decision #26) |
+| 81 | Transition rules | Guards call a pure `OrderTransitionPolicy`; non-staff only learn "staff only", staff learn what is missing (e.g. refund not complete) | Rules are unit-tested without Symfony; messages fit the audience |
+| 82 | Transition effects | One Application service, `OrderTransitions`, applies effects and transition together (stock, refunds); controllers, webhooks and the scheduler all use it | No path can change the state without its stock effect |
+| 83 | Cancel after payment | Staff only; the full refund is issued through the gateway inside the same action, then stock is restocked; a refused refund changes nothing | Decision #55 made concrete |
+| 84 | Webhook processing | Stored first (unique gateway + event id), processed by the async worker; the FakeGateway page delivers its webhook as an in-process sub-request | Idempotent; PHP's built-in server cannot call itself |
+| 85 | Payment retry | A new payment attempt per retry; an open attempt is reused | Keeps every attempt in the history |
+| 86 | Unpaid orders | Cancelled after 60 minutes by the scheduler (every 5 minutes) and on demand with `app:orders:expire` | Reserved stock never stays blocked |
+| 87 | Charts | `chart.js` 4.5.1 (MIT) through PrimeVue `Chart` | Licence rule #67 |

@@ -12,7 +12,7 @@ test('staff log in on the Twig page and use the store switcher in the admin SPA'
 
     // Back to the page that was requested before the login.
     await expect(page).toHaveURL(/\/orders$/);
-    await expect(page.getByText('Orders arrives in phase 6')).toBeVisible();
+    await expect(page.getByText('Pick a store to start')).toBeVisible();
 
     await page.getByRole('link', { name: 'Dashboard' }).click();
     await expect(page.getByText('Pick a store to start')).toBeVisible();
@@ -24,7 +24,7 @@ test('staff log in on the Twig page and use the store switcher in the admin SPA'
     await expect(page.getByText("Now working in MyOil's Auto.")).toBeVisible();
 
     await page.getByRole('link', { name: 'Orders' }).click();
-    await expect(page.getByText('Orders arrives in phase 6')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Orders' })).toBeVisible();
 
     await page.goto(`${ADMIN}/does-not-exist`);
     await expect(page.getByText('This admin page does not exist')).toBeVisible();

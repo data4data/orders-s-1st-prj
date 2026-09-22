@@ -29,6 +29,7 @@ framework:
 
         routing:
             Symfony\Component\Mailer\Messenger\SendEmailMessage: async
+            App\Application\Payment\ProcessPaymentWebhook: async
 
 when@test:
     framework:

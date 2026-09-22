@@ -127,6 +127,12 @@ The mapping lives in one PHP enum (`OrderState`) with `label()` and `badge()` me
   are done by the **handler** in the same transaction as `$workflow->apply()`.
 - Side effects (the `order_status_history` audit row, emails) run in `completed` listeners. Emails go
   through async Messenger.
+- `OrderTransitions` (Application) is the only way an order changes state: it checks the edge and the
+  guards, runs the effects (stock commit / release / restock, gateway refunds) and applies the
+  transition in the caller's transaction. Guards delegate to the pure `OrderTransitionPolicy`.
+- Webhooks: `/webhooks/payment/{gateway}` verifies the signature, stores `payment_webhook_event`
+  (unique per gateway and event id, so repeats are ignored), answers 202 and queues
+  `ProcessPaymentWebhook`; the worker applies the payment transition and, on capture, the order `pay`.
 - **Payments** have their own state machine: `pending → authorized → captured`, plus
   `failed`, `cancelled` and `refunded`. `payment.completed.capture` dispatches the order's `pay`
   transition.

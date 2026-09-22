@@ -6,6 +6,8 @@ import ProductListPage from './pages/catalog/ProductListPage.vue';
 import ProductEditPage from './pages/catalog/ProductEditPage.vue';
 import CategoryPage from './pages/catalog/CategoryPage.vue';
 import AttributePage from './pages/catalog/AttributePage.vue';
+import OrderListPage from './pages/orders/OrderListPage.vue';
+import OrderDetailPage from './pages/orders/OrderDetailPage.vue';
 
 /** Admin navigation (docs/diagrams/pages.html → Admin map). Screens arrive in the phases noted. */
 const soon = (path, page, phase, extra = {}) => ({ path, component: ComingSoonPage, props: { page, phase }, meta: { title: page, ...extra } });
@@ -13,7 +15,8 @@ const soon = (path, page, phase, extra = {}) => ({ path, component: ComingSoonPa
 export function createAdminRouter({ devTools }) {
     const routes = [
         { path: '/', component: DashboardPage, meta: { title: 'admin.nav.dashboard' } },
-        soon('/orders', 'admin.nav.orders', 6),
+        { path: '/orders', component: OrderListPage, meta: { title: 'admin.nav.orders' } },
+        { path: '/orders/:id', component: OrderDetailPage, props: true, meta: { title: 'admin.nav.orders' } },
         { path: '/catalog/products', component: ProductListPage, meta: { title: 'admin.nav.products' } },
         { path: '/catalog/products/new', component: ProductEditPage, meta: { title: 'admin.catalog.product.new_title' } },
         { path: '/catalog/products/:publicId', component: ProductEditPage, props: true, meta: { title: 'admin.nav.products' } },

@@ -7,6 +7,8 @@ namespace App\Entity;
 use App\Domain\Payment\PaymentState;
 use App\Entity\Contract\TenantAwareInterface;
 use App\Entity\Contract\TenantAwareTrait;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
@@ -50,6 +52,10 @@ class Payment implements TenantAwareInterface
     #[ORM\Column]
     private \DateTimeImmutable $updatedAt;
 
+    /** @var Collection<int, PaymentRefund> */
+    #[ORM\OneToMany(targetEntity: PaymentRefund::class, mappedBy: 'payment', cascade: ['persist'])]
+    private Collection $refunds;
+
     public function __construct(
         #[ORM\ManyToOne(targetEntity: Order::class)]
         #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -62,6 +68,7 @@ class Payment implements TenantAwareInterface
         private string $currencyCode,
     ) {
         $this->publicId = Uuid::v7();
+        $this->refunds = new ArrayCollection();
         $this->createdAt = $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -149,5 +156,27 @@ class Payment implements TenantAwareInterface
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    /** @return Collection<int, PaymentRefund> */
+    public function getRefunds(): Collection
+    {
+        return $this->refunds;
+    }
+
+    public function addRefund(PaymentRefund $refund): void
+    {
+        $this->refunds->add($refund);
+    }
+
+    /** Sum of the refunds that went through, in cents. */
+    public function refundedAmount(): int
+    {
+        return array_sum(array_map(static fn (PaymentRefund $r) => $r->isSucceeded() ? $r->getAmount() : 0, $this->refunds->toArray()));
+    }
+
+    public function capturedAmount(): int
+    {
+        return \in_array($this->state(), [PaymentState::Captured, PaymentState::Refunded], true) ? $this->amount : 0;
     }
 }

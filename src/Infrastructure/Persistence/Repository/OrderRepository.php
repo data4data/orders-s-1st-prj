@@ -8,6 +8,7 @@ use App\Application\Ordering\Port\OrderRepositoryInterface;
 use App\Domain\Ordering\OrderState;
 use App\Entity\Customer;
 use App\Entity\Order;
+use App\Entity\OrderStatusHistory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Uid\Uuid;
@@ -48,6 +49,39 @@ final class OrderRepository extends ServiceEntityRepository implements OrderRepo
             ->setFirstResult(($page - 1) * $perPage)->setMaxResults($perPage)->getQuery()->getResult();
 
         return ['items' => $items, 'total' => $total];
+    }
+
+    public function adminPage(?string $state, string $search, int $page, int $perPage): array
+    {
+        $qb = $this->createQueryBuilder('o')->where('o.state <> :draft')->setParameter('draft', OrderState::Draft->value);
+        if (null !== $state && '' !== $state) {
+            $qb->andWhere('o.state = :state')->setParameter('state', $state);
+        }
+        if ('' !== trim($search)) {
+            $qb->andWhere('o.orderNumber LIKE :q OR o.customerEmail LIKE :q OR o.billingAddress.lastName LIKE :q')->setParameter('q', '%'.trim($search).'%');
+        }
+        $total = (int) (clone $qb)->select('COUNT(o.id)')->getQuery()->getSingleScalarResult();
+        /** @var list<Order> $items */
+        $items = $qb->orderBy('o.placedAt', 'DESC')->addOrderBy('o.id', 'DESC')
+            ->setFirstResult(($page - 1) * $perPage)->setMaxResults($perPage)->getQuery()->getResult();
+
+        return ['items' => $items, 'total' => $total];
+    }
+
+    public function findUnpaidPlacedBefore(\DateTimeImmutable $cutoff): array
+    {
+        /** @var list<Order> $orders */
+        $orders = $this->createQueryBuilder('o')
+            ->where('o.state = :state')->andWhere('o.placedAt < :cutoff')
+            ->setParameter('state', OrderState::PaymentPending->value)->setParameter('cutoff', $cutoff)
+            ->getQuery()->getResult();
+
+        return $orders;
+    }
+
+    public function history(Order $order): array
+    {
+        return $this->getEntityManager()->getRepository(OrderStatusHistory::class)->findBy(['order' => $order], ['id' => 'ASC']);
     }
 
     public function save(Order $order): void
