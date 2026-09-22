@@ -41,6 +41,9 @@ $(() => {
         }, 1000);
     });
 
+    if (document.querySelector('form[data-contact-form], [data-sds-filter]')) {
+        import('./pages/contact.js');
+    }
     if (document.querySelector('.ui-kit')) {
         import('./ui-kit.js');
     }

@@ -34,7 +34,7 @@ composer worker                    # keep running: payment webhooks, emails, sch
 | Host | What |
 |---|---|
 | `https://myoils-auto.shop.test` | MyOil's Auto (also `myoils-industrie` and `myoils-agri`) |
-| `https://admin.shop.test` | Admin SPA (catalog since Phase 4) |
+| `https://admin.shop.test` | Admin SPA: orders, catalog, customers, coupons, settings, platform |
 
 Demo staff (password `password`): `admin@myoils.test` (super-admin) and `manager@myoils.test`
 (manager of Auto and Industrie). Demo customer: `jan@example.test` / `password` in Auto and Industrie.

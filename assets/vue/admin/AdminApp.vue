@@ -17,6 +17,7 @@ const props = defineProps({
 
 const tenant = reactive({ mode: 'none', store: null, readOnly: false });
 provide('tenant', tenant);
+provide('user', props.user);
 onMounted(async () => {
     try {
         Object.assign(tenant, await api.get('/api/admin/stores/current'));

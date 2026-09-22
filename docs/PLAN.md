@@ -105,11 +105,12 @@ Everything in [pages.html → UI standards / Error handling](diagrams/pages.html
 7. Done: scheduler (`ExpireUnpaidOrders` every 5 minutes, also `bin/console app:orders:expire`): orders awaiting payment for more than 60 minutes are cancelled and their stock released.
 8. Done: **tests:** every transition rule in unit tests (100 % Domain coverage), and functional tests for webhook → pay → fulfilment → refund, cancel before and after payment, illegal transitions (e.g. `ship` from `paid`), duplicate webhooks, retry and customer cancel, expiry and the dashboard, with the stock invariants on every path; **23 Playwright browser tests** (a worker is started for them).
 
-## Phase 7 — Bootstrap & jQuery content pages
+## Phase 7 — Bootstrap & jQuery content pages — **Done** (branch `feature/content-pages`)
 
-1. Landing (hero, category tiles, featured products, oil finder teaser → filtered catalog, USPs, B2B banner).
-2. About, FAQ (accordion), Contact (jQuery validation + AJAX → `contact_message`, rate-limited), Shipping info, Safety data sheets list, Terms, Privacy.
-3. Admin: Customers → Contact messages tab. Settings pages (Store profile & branding, Domains, Shipping methods, Payment gateway, Staff & roles, Email notifications). Platform pages (Stores, Countries & VAT rates, Tax categories, Staff users, System).
+1. Done: landing page (Twig + Bootstrap): hero with USPs, category tiles with product counts, featured products, oil finder teaser (the shop's first filterable attribute, e.g. SAE or ISO VG → filtered catalog), shipping summary from the shop's methods, business banner.
+2. Done: About, FAQ (Bootstrap accordion), Contact (jQuery validation + AJAX to `/api/contact` → `contact_message`, honeypot, 3 per 10 minutes, email to the shop), Shipping info (prices incl. VAT from the shipping methods), Safety data sheets (from product documents, with a live filter), Terms, Privacy (demo texts).
+3. Done: Admin → Customers (list with orders and amount spent, detail with addresses and orders) with the **Contact messages** tab (unread badge, mark read, reply by email); Coupons (the screen promised earlier). Settings (managers/owners): Store profile & branding, Domains, Shipping methods, Payment gateway, Staff & roles (only owners appoint owners, a shop keeps one owner), Email notifications (switches honoured by the order and contact emails). Platform (super-admins): Stores (create, switch off), Countries & VAT rates (overlap check through the domain rate table) and tax categories, Staff users, System (queues, failed jobs with retry/delete, recent webhooks).
+4. Done: **tests:** content pages and contact form (validation, honeypot, rate limit, notification), admin customers/messages/coupons, every settings rule and platform action; browser tests for landing → oil finder, contact form, FAQ/SDS, and a branding change seen in the shop.
 
 ## Phase 8 — Fixtures & demo data
 

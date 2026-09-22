@@ -194,6 +194,12 @@ existing is edited.
 Shared behaviour sits in base classes: `AbstractPaymentGateway` (signature checks, money conversion),
 `AbstractApiController` (JSON, validation, CSRF), and the Twig base layouts.
 
+### Admin configuration
+
+Settings (per store, managers and owners) and Platform (super-admins) are plain CRUD on
+configuration tables, so their handlers use Doctrine directly. Everything with business rules
+(cart, checkout, order and payment workflows, address book) goes through ports and the domain.
+
 ## 8. Frontend and style isolation
 
 Vite builds **three independent entries**, and each Twig base layout loads exactly one of them:

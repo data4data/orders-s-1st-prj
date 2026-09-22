@@ -1,0 +1,50 @@
+{% extends 'content/_page.html.twig' %}
+
+{% block title %}{{ 'content.contact.title'|trans }}{% endblock %}
+{% block heading %}{{ 'content.contact.title'|trans }}{% endblock %}
+
+{% block content %}
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div id="contact-sent" class="alert alert-success d-flex gap-2" role="status" hidden>{{ icon('success') }}<div>{{ 'content.contact.sent'|trans }}</div></div>
+            <form id="contact-form" data-validate data-contact-form data-unsaved-guard data-error-summary="#contact-summary" novalidate>
+                <div id="contact-summary"></div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label required" for="contact-name">{{ 'content.contact.name'|trans }}</label>
+                        <input class="form-control" id="contact-name" name="name" autocomplete="name" required maxlength="100" value="{{ app.user ? app.user.firstName ~ ' ' ~ app.user.lastName : '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label required" for="contact-email">{{ 'content.contact.email'|trans }}</label>
+                        <input class="form-control" id="contact-email" name="email" type="email" autocomplete="email" required value="{{ app.user ? app.user.email : '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="contact-subject">{{ 'content.contact.subject'|trans }}</label>
+                        <select class="form-select" id="contact-subject" name="subject">
+                            {% for subject in subjects %}<option value="{{ subject }}" {{ app.request.query.get('subject') == subject ? 'selected' }}>{{ ('content.contact.subjects.' ~ subject)|trans }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="contact-order">{{ 'content.contact.order_number'|trans }}</label>
+                        <input class="form-control" id="contact-order" name="orderNumber" placeholder="AUTO-000123" pattern="[A-Za-z]{2,16}-\d{6}" data-msg-pattern="{{ 'content.contact.order_pattern'|trans }}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label required" for="contact-message">{{ 'content.contact.message'|trans }}</label>
+                        <textarea class="form-control" id="contact-message" name="message" rows="6" required minlength="10" maxlength="5000"></textarea>
+                    </div>
+                    {# Honeypot for bots: hidden from people and screen readers. #}
+                    <div class="visually-hidden" aria-hidden="true"><label for="contact-website">Website</label><input id="contact-website" name="website" tabindex="-1" autocomplete="off"></div>
+                    <div class="col-12"><button class="btn btn-primary" type="submit">{{ icon('mail') }} {{ 'content.contact.send'|trans }}</button></div>
+                </div>
+            </form>
+        </div>
+        <aside class="col-lg-4">
+            <div class="card"><div class="card-body">
+                <h2 class="h6">{{ layout.store.name }}</h2>
+                {% if layout.store.contactEmail %}<p class="mb-1">{{ icon('mail') }} <a href="mailto:{{ layout.store.contactEmail }}">{{ layout.store.contactEmail }}</a></p>{% endif %}
+                <p class="mb-1">{{ icon('phone') }} 020 123 4567</p>
+                <p class="small text-body-secondary mb-0">{{ 'content.contact.hours'|trans }}</p>
+            </div></div>
+        </aside>
+    </div>
+{% endblock %}

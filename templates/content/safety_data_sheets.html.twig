@@ -1,0 +1,23 @@
+{% extends 'content/_page.html.twig' %}
+
+{% block title %}{{ 'content.sds.title'|trans }}{% endblock %}
+{% block heading %}{{ 'content.sds.title'|trans }}{% endblock %}
+
+{% block content %}
+    <p class="lead">{{ 'content.sds.lead'|trans }}</p>
+    {% if documents is empty %}
+        <div class="text-center py-4 text-body-secondary"><div class="fs-2">{{ icon('empty') }}</div>{{ 'content.sds.empty'|trans }}</div>
+    {% else %}
+        <input class="form-control mb-3" type="search" placeholder="{{ 'content.sds.filter'|trans }}" aria-label="{{ 'content.sds.filter'|trans }}" data-sds-filter>
+        <ul class="list-group" data-sds-list>
+            {% for doc in documents %}
+                <li class="list-group-item d-flex flex-wrap gap-2 align-items-center" data-sds-item="{{ (doc.product ~ ' ' ~ doc.title)|lower }}">
+                    <span class="text-primary">{{ icon('document') }}</span>
+                    <a class="me-auto" href="/p/{{ doc.slug }}">{{ doc.product }}</a>
+                    <a class="btn btn-sm btn-outline-primary" href="{{ doc.url }}" target="_blank" rel="noopener">{{ doc.title }} ({{ doc.locale|upper }}, PDF)</a>
+                </li>
+            {% endfor %}
+        </ul>
+        <p class="text-body-secondary mt-3" data-sds-none hidden>{{ 'content.sds.no_match'|trans }}</p>
+    {% endif %}
+{% endblock %}

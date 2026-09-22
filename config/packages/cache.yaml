@@ -18,10 +18,11 @@ framework:
         #pools:
             #my.dedicated.cache: null
 
-# Tests start with fresh rate limits (the filesystem pool would carry counts from test to test).
+# Tests: rate limits live in the database (cache_items), so they last across the requests of one
+# test (an array pool is emptied by every request) and start fresh with each test's database reset.
 when@test:
     framework:
         cache:
             pools:
                 cache.rate_limiter:
-                    adapter: cache.adapter.array
+                    adapter: cache.adapter.doctrine_dbal

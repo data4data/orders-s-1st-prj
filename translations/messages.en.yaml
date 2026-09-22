@@ -162,3 +162,146 @@ account:
     title: My account
 order:
     confirmation_title: Order confirmation
+
+content:
+    from: from %price%
+    price: '%price%'
+    incl_vat: incl. VAT
+    per_litre: '%price% per L'
+    legal_notice: Demo text. A real shop replaces this page with its own legal text.
+    home:
+        title: Lubricants for every engine
+        hero_title: The right oil for every engine
+        hero_text: OEM-approved lubricants, shipped from the Netherlands within 24 hours.
+        find_oil: Find the right oil
+        business: Business customer?
+        usp:
+            approvals: OEM approvals on every product
+            delivery: Ordered before 17:00, shipped today
+            business: Business pricing with your VAT number
+            sds: A safety data sheet for every product
+        categories: Shop by category
+        product_count: '{0}No products yet|{1}1 product|]1,Inf[%count% products'
+        featured: Featured products
+        all_products: All products
+        finder_title: Not sure which oil?
+        finder_text: 'Pick the %attribute% your manual asks for and we show every matching product. A step-by-step oil finder follows later.'
+        finder_submit: Show matching products
+        b2b_title: Workshop or fleet?
+        b2b_text: Order with your company details and VAT number, and ask us about volume prices and drums.
+        b2b_button: Contact sales
+    about:
+        title: About us
+        lead: '%store% is part of MyOil''s, a Dutch family business supplying lubricants since 1998.'
+        p1: We stock engine, gear, hydraulic and industrial oils from our own warehouse near Utrecht, so most orders leave the same day.
+        p2: Every product comes with its technical and safety data sheet, and our specialists help you choose the right specification.
+        other_shops: Our other shops
+        card:
+            warehouse_title: Own warehouse
+            warehouse: Over 2,000 pack sizes in stock, from 1 litre to 1,000 litre IBC.
+            approvals_title: Approved quality
+            approvals: Products tested against ACEA, API and OEM specifications.
+            support_title: Specialist advice
+            support: Call or write us on working days from 8:00 to 17:30.
+    faq:
+        title: Frequently asked questions
+        more: Your question is not listed?
+        contact: Send us a message.
+        group:
+            ordering: Ordering
+            delivery: Delivery
+            products: Products
+            payment: Payment
+        ordering:
+            account:
+                q: Do I need an account to order?
+                a: No. You can check out as a guest. With an account you save your addresses and see all your orders.
+            vat:
+                q: Can I order with my company details?
+                a: Yes. Enter your company name and VAT number in the billing address; they appear on your invoice.
+            change:
+                q: Can I change an order after placing it?
+                a: Until it is shipped we can cancel it for you and refund the full amount. Contact us with your order number.
+        delivery:
+            when:
+                q: When will my order arrive?
+                a: Orders placed before 17:00 on working days leave the same day. PostNL Standard usually delivers the next working day.
+            countries:
+                q: Which countries do you deliver to?
+                a: The Netherlands, Belgium and Germany. See the shipping info page for prices per country.
+            free:
+                q: When is shipping free?
+                a: PostNL Standard is free from €100 incl. VAT, after discounts.
+        products:
+            which:
+                q: Which oil does my car need?
+                a: Your owner's manual lists the viscosity (e.g. 5W-30) and the specification or approval (e.g. VW 504.00). Filter the catalog on both.
+            sds:
+                q: Where do I find safety data sheets?
+                a: On the Documents tab of each product, and all together on the safety data sheets page.
+            drums:
+                q: Do you sell drums and IBCs?
+                a: 'Yes, many oils come in 20 L, 60 L and 208 L. Drums ship by pallet delivery at %store%.'
+        payment:
+            methods:
+                q: How can I pay?
+                a: You pay on the secure page of our payment provider right after checkout.
+            failed:
+                q: My payment failed. What now?
+                a: Nothing was charged. Open your order confirmation and click "Try the payment again".
+            refund:
+                q: How long does a refund take?
+                a: We send the refund the moment we cancel or refund the order; your bank usually shows it within a few days.
+    contact:
+        title: Contact us
+        name: Name
+        email: Email
+        subject: Subject
+        subjects:
+            order: A question about my order
+            product: Product advice
+            business: Business account and volume prices
+            other: Something else
+        order_number: Order number (optional)
+        order_pattern: An order number looks like AUTO-000123.
+        message: Message
+        send: Send message
+        sent: Thank you. We have received your message and answer within one working day.
+        hours: Working days 8:00 to 17:30.
+    shipping:
+        title: Shipping information
+        lead: All prices include VAT. Orders placed before 17:00 on working days leave the same day.
+        method: Method
+        price: Price
+        countries: Countries
+        free_from: Free from %amount%
+        by_weight: Price by weight
+        up_to: up to %kg% kg
+        heavier: heavier
+        vat_note: Shipping is charged with the standard VAT rate, like the products.
+    sds:
+        title: Safety data sheets
+        lead: Safety data sheets (SDS) of all our products. Also available on the Documents tab of each product.
+        filter: Filter by product
+        empty: No safety data sheets yet.
+        no_match: No product matches this filter.
+    terms:
+        title: Terms and conditions
+        s1_title: 1. Who we are
+        s1: '%store% is a trading name of MyOil''s B.V., registered in the Netherlands.'
+        s2_title: 2. Prices and payment
+        s2: Prices include VAT unless stated otherwise. You pay right after placing the order; the order is binding once paid.
+        s3_title: 3. Delivery
+        s3: We deliver to the address you entered. Delivery times are estimates.
+        s4_title: 4. Cancellation and returns
+        s4: 'Until shipping we can cancel an order and refund it in full. Contact us at %email% for returns.'
+    privacy:
+        title: Privacy statement
+        s1_title: 1. What we collect
+        s1: Your name, email, addresses and orders, and the messages you send us.
+        s2_title: 2. Why
+        s2: To deliver your orders, send order emails and answer your questions. We do not sell your data.
+        s3_title: 3. How long
+        s3: Orders are kept as long as the law requires for bookkeeping; accounts until you ask us to remove them.
+        s4_title: 4. Your rights
+        s4: 'Ask %store% at %email% to see, correct or delete your data.'

@@ -101,6 +101,50 @@ class Coupon implements TenantAwareInterface
         return $this->timesUsed;
     }
 
+    public function update(string $code, CouponType $type, ?string $percent, ?int $amount, bool $isActive): void
+    {
+        $this->code = self::normalizeCode($code);
+        $this->type = $type;
+        $this->percent = CouponType::Percentage === $type ? $percent : null;
+        $this->amount = CouponType::Fixed === $type ? $amount : null;
+        $this->isActive = $isActive;
+    }
+
+    public function getPercent(): ?string
+    {
+        return $this->percent;
+    }
+
+    public function getAmount(): ?int
+    {
+        return $this->amount;
+    }
+
+    public function getMinOrderNet(): ?int
+    {
+        return $this->minOrderNet;
+    }
+
+    public function getValidFrom(): ?\DateTimeImmutable
+    {
+        return $this->validFrom;
+    }
+
+    public function getValidTo(): ?\DateTimeImmutable
+    {
+        return $this->validTo;
+    }
+
+    public function getUsageLimit(): ?int
+    {
+        return $this->usageLimit;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
     public function recordUse(): void
     {
         ++$this->timesUsed;

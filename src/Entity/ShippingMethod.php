@@ -88,6 +88,39 @@ class ShippingMethod implements TenantAwareInterface
         return $this->position;
     }
 
+    /**
+     * @param array<string, mixed> $config
+     * @param list<string>|null    $allowedCountries
+     */
+    public function update(string $code, string $name, ?string $description, string $calculator, array $config, ?array $allowedCountries, int $position, bool $isActive): void
+    {
+        $this->code = $code;
+        $this->name = $name;
+        $this->description = $description;
+        $this->calculator = $calculator;
+        $this->config = $config;
+        $this->allowedCountries = $allowedCountries;
+        $this->position = $position;
+        $this->isActive = $isActive;
+    }
+
+    public function getCalculator(): string
+    {
+        return $this->calculator;
+    }
+
+    /** @return array<string, mixed> */
+    public function getConfig(): array
+    {
+        return $this->config;
+    }
+
+    /** @return list<string>|null */
+    public function getAllowedCountries(): ?array
+    {
+        return $this->allowedCountries;
+    }
+
     public function toSpec(): ShippingMethodSpec
     {
         return new ShippingMethodSpec($this->code, $this->calculator, $this->config, $this->allowedCountries);

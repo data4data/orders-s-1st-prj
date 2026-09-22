@@ -15,7 +15,8 @@ use Symfony\Component\Workflow\Event\CompletedEvent;
 #[AsEventListener(event: 'workflow.order.completed')]
 final readonly class OrderEmailListener
 {
-    private const MAILS = ['pay', 'ship', 'cancel', 'refund'];
+    /** Transition => the store's notification switch (Settings → Email notifications). */
+    private const MAILS = ['pay' => 'order_paid', 'ship' => 'order_shipped', 'cancel' => 'order_cancelled', 'refund' => 'order_refunded'];
 
     public function __construct(private OrderMailer $mailer)
     {
@@ -24,8 +25,9 @@ final readonly class OrderEmailListener
     public function __invoke(CompletedEvent $event): void
     {
         $order = $event->getSubject();
-        $transition = $event->getTransition()?->getName();
-        if ($order instanceof Order && \in_array($transition, self::MAILS, true) && null !== $order->getCustomerEmail()) {
+        $transition = $event->getTransition()?->getName() ?? '';
+        $switch = self::MAILS[$transition] ?? null;
+        if ($order instanceof Order && null !== $switch && null !== $order->getCustomerEmail() && true === $order->getStore()?->wantsNotification($switch)) {
             $this->mailer->send($order, $transition);
         }
     }

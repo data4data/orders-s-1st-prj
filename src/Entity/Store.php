@@ -53,6 +53,10 @@ class Store
     #[ORM\Column]
     private bool $isActive = true;
 
+    /** @var array<string, bool> customer and staff emails switched on or off (Settings → Email notifications) */
+    #[ORM\Column(type: 'json')]
+    private array $notifications = [];
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -178,6 +182,46 @@ class Store
             throw new \InvalidArgumentException('The low-stock threshold cannot be negative.');
         }
         $this->lowStockThreshold = $threshold;
+    }
+
+    public const NOTIFICATIONS = ['order_paid', 'order_shipped', 'order_cancelled', 'order_refunded', 'contact_message'];
+
+    public function rename(string $name): void
+    {
+        $this->name = $name;
+    }
+
+    public function changeOrderNumberPrefix(string $prefix): void
+    {
+        $this->orderNumberPrefix = strtoupper($prefix);
+    }
+
+    public function usePaymentGateway(string $code): void
+    {
+        $this->paymentGatewayCode = $code;
+    }
+
+    /** Every notification is on unless switched off. */
+    public function wantsNotification(string $key): bool
+    {
+        return $this->notifications[$key] ?? true;
+    }
+
+    /** @return array<string, bool> */
+    public function getNotifications(): array
+    {
+        $all = [];
+        foreach (self::NOTIFICATIONS as $key) {
+            $all[$key] = $this->wantsNotification($key);
+        }
+
+        return $all;
+    }
+
+    /** @param array<string, bool> $notifications */
+    public function changeNotifications(array $notifications): void
+    {
+        $this->notifications = array_intersect_key($notifications, array_flip(self::NOTIFICATIONS));
     }
 
     public function activate(): void

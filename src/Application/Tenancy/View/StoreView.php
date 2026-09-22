@@ -22,6 +22,7 @@ final readonly class StoreView
         public ?string $faviconUrl,
         public string $primaryColor,
         public string $accentColor,
+        public ?string $contactEmail = null,
     ) {
     }
 
@@ -38,6 +39,7 @@ final readonly class StoreView
             $store->getFaviconUrl(),
             $store->getPrimaryColor(),
             $store->getAccentColor(),
+            $store->getContactEmail(),
         );
     }
 }
