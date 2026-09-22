@@ -36,7 +36,8 @@ composer demo:reset                # drop + create the database, run the migrati
 | `https://admin.shop.test` | Admin SPA (catalog since Phase 4) |
 
 Demo staff (password `password`): `admin@myoils.test` (super-admin) and `manager@myoils.test`
-(manager of Auto and Industrie).
+(manager of Auto and Industrie). Demo customer: `jan@example.test` / `password` in Auto and Industrie.
+Coupons: `WELCOME10`, `FIVEOFF`. Payments use the local fake provider (no money is moved).
 
 Useful endpoints: `GET /api/store` on a shop host returns the store's name and branding.
 Every console command accepts `--store=<code>`, e.g. `php bin/console app:tenant:status --store=myoils-auto`.

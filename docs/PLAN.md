@@ -83,19 +83,20 @@ Everything in [pages.html → UI standards / Error handling](diagrams/pages.html
 6. Done: demo catalogs for the three shops (Auto 9, Industrie 5, Agri 4 products) and `composer demo:reset`.
 7. Done: **tests:** 142 PHP tests (storefront catalog API and pages, admin CRUD with nested validation paths, duplicate SKU/slug, stale version, delete rules, tenant isolation, VAT periods) and **20 Playwright browser tests** (filters in the address, pack selector prices, admin price edit shown in the shop).
 
-## Phase 5 — Customers, cart, checkout & payment port
+## Phase 5 — Customers, cart, checkout & payment port — **Done** (branch `feature/checkout`)
 
-1. `Customer` + `CustomerAddress` (flags, defaults, B2B `company`/`vat_id`). **Customer registration (Twig) with the required billing address and "delivery same as billing"**, customer login, password reset (the staff login page already exists since Phase 3).
-2. Customer account (Vue): Dashboard, Orders, Addresses (the address rule enforced in UI and domain), Profile & security.
-3. Draft order as the cart: `AddToCart`, `UpdateCartLine`, `RemoveCartLine`, `ApplyCoupon` handlers. Mini-cart drawer and cart page.
-4. `ShippingMethod` + calculator registry. `Coupon` (percentage `DECIMAL(5,2)` or fixed amount).
-5. `PaymentGatewayInterface`, `AbstractPaymentGateway`, `FakeGateway` (a local "pay / fail" page that posts a signed webhook), `PaymentGatewayRegistry`.
-6. `PlaceOrder` handler: price, discount, VAT, stock check, workflow `checkout`, reservation, snapshots, order number, checkout session.
-7. Vue checkout wizard: account/guest → addresses → shipping → review → pay → confirmation, with the order summary always visible.
+1. Done: `Customer` + `CustomerAddress` (flags, defaults, B2B `company`/`vat_id`). **Registration (Twig + Bootstrap) with the required billing address and "delivery same as billing"** (one address row with both flags), customer login per shop (`main` firewall, 5 attempts / 15 min), logout, password reset by email (stateless signed link, one hour, single use).
+2. Done: customer account (Vue, `/account`, `/account/orders|addresses|profile`): dashboard, orders with details, address book (the address rule enforced by `AddressBookPolicy`), profile and password change.
+3. Done: the draft order is the cart (session per shop; a guest cart joins the account on login). `AddToCart`, `UpdateCartLine`, `RemoveCartLine`, `ApplyCoupon`, `RemoveCoupon`; mini-cart drawer in the header and the cart page; the header counts items in both stacks.
+4. Done: `ShippingMethod` (flat, weight-based, free over threshold; allowed countries) and `Coupon` (percentage `DECIMAL(5,2)` or fixed amount), demo data for every shop.
+5. Done: `PaymentGatewayInterface` (`createCheckoutSession`, `handleWebhook`, `refund`), `AbstractPaymentGateway` (HMAC signatures), `FakeGateway` with a signed local payment page, `PaymentGatewayRegistry` (tagged locator), webhook endpoint that verifies the signature. Storing and processing webhook events is Phase 6.
+6. Done: `PlaceOrder`: same `OrderPricer` as the cart (price, coupon, VAT, shipping), `StockPolicy` check, `expectedTotal` guard, `checkout` transition (order and payment state machines configured now; guards and listeners in Phase 6), stock reservation, line/address/shipping snapshots, order number, payment session — in one transaction.
+7. Done: Vue checkout wizard (account/guest → addresses → shipping → review & pay) with the order summary always visible; server errors jump back to the step of the field; confirmation page.
+8. Done: **tests:** 176 PHP tests (cart, coupons, stock limits, checkout for guests and customers, validation per field, confirmation access, registration, login per shop, password reset, account and address rules, fake gateway and webhook signatures) and **22 Playwright browser tests**.
 
 ## Phase 6 — Order & payment workflows
 
-1. `config/packages/workflow.yaml`: `order` and `payment` state machines exactly as in the diagrams.
+1. Done early (Phase 5): `config/packages/workflow.yaml` with the `order` and `payment` state machines exactly as in the diagrams.
 2. Guard listeners for each transition, delegating to Domain policies.
 3. `completed` listeners: `order_status_history`, and emails queued on the async transport.
 4. Webhook endpoint `/webhooks/payment/{gateway}`: store the event, deduplicate, process asynchronously. Payment `capture` → order `pay` → stock deduction.

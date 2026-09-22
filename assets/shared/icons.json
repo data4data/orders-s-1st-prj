@@ -38,5 +38,7 @@
     "brand": "droplet",
     "mail": "mail",
     "clock": "clock",
-    "remove": "minus"
+    "remove": "minus",
+    "address": "map-pin",
+    "payment": "credit-card"
 }

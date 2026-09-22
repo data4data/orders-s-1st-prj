@@ -1,2 +1,41 @@
+# Order and payment state machines (architecture.md §4, docs/diagrams/architecture.html).
+# Guards and `completed` listeners are added in Phase 6; Phase 5 uses `checkout`.
 framework:
-    workflows: null
+    workflows:
+        order:
+            type: state_machine
+            audit_trail:
+                enabled: '%kernel.debug%'
+            marking_store:
+                type: method
+                property: state
+            supports:
+                - App\Entity\Order
+            initial_marking: draft
+            places: [draft, payment_pending, paid, processing, shipped, delivered, cancelled, refunded]
+            transitions:
+                checkout: { from: draft, to: payment_pending }
+                pay: { from: payment_pending, to: paid }
+                start_processing: { from: paid, to: processing }
+                ship: { from: processing, to: shipped }
+                deliver: { from: shipped, to: delivered }
+                cancel: { from: [draft, payment_pending, paid, processing], to: cancelled }
+                refund: { from: [shipped, delivered], to: refunded }
+
+        payment:
+            type: state_machine
+            audit_trail:
+                enabled: '%kernel.debug%'
+            marking_store:
+                type: method
+                property: state
+            supports:
+                - App\Entity\Payment
+            initial_marking: pending
+            places: [pending, authorized, captured, failed, cancelled, refunded]
+            transitions:
+                authorize: { from: pending, to: authorized }
+                capture: { from: [pending, authorized], to: captured }
+                fail: { from: [pending, authorized], to: failed }
+                cancel: { from: [pending, authorized], to: cancelled }
+                refund: { from: captured, to: refunded }

@@ -1,13 +1,16 @@
 <script setup>
 import { ref } from 'vue';
 import AppIcon from '../components/AppIcon.vue';
+import MiniCart from './MiniCart.vue';
+import { cartState, itemCount } from '../shared/cart.js';
 
 // Storefront header (Vue). The Bootstrap twin is templates/bootstrap/_header.html.twig: keep both in sync.
-defineProps({
+const props = defineProps({
     layout: { type: Object, required: true },
     scheme: { type: String, default: 'https' },
 });
 const shopsOpen = ref(false);
+cartState.initialCount = props.layout.cartItemCount;
 </script>
 
 <template>
@@ -41,13 +44,15 @@ const shopsOpen = ref(false);
                     <input class="grow outline-none" type="search" name="q" :placeholder="$t('layout.search_placeholder')" :aria-label="$t('layout.search')">
                 </form>
                 <div class="flex items-center gap-4 text-xl">
-                    <a href="/account" :aria-label="$t('layout.account')"><AppIcon name="account" /></a>
-                    <a href="/cart" class="relative" :aria-label="$t('layout.cart')">
+                    <a v-if="layout.customerName" href="/account" class="flex items-center gap-1 text-base font-semibold" :aria-label="$t('layout.account')"><AppIcon name="account" class="text-xl" /> {{ layout.customerName }}</a>
+                    <a v-else href="/login" class="flex items-center gap-1 text-base font-semibold"><AppIcon name="account" class="text-xl" /> {{ $t('layout.log_in') }}</a>
+                    <a href="/cart" class="relative" :aria-label="$t('layout.cart')" data-testid="header-cart" @click.prevent="cartState.drawerOpen = true">
                         <AppIcon name="cart" />
-                        <span v-if="layout.cartItemCount > 0" class="absolute -right-2 -top-2 rounded-full bg-[var(--brand-accent)] px-1.5 text-xs font-bold text-[var(--brand-on-accent)]">{{ layout.cartItemCount }}</span>
+                        <span v-if="itemCount() > 0" class="absolute -right-2 -top-2 rounded-full bg-[var(--brand-accent)] px-1.5 text-xs font-bold text-[var(--brand-on-accent)]" data-testid="cart-count">{{ itemCount() }}</span>
                     </a>
                 </div>
             </div>
         </nav>
+        <MiniCart />
     </header>
 </template>

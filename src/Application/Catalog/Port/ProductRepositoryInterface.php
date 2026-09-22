@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Catalog\Port;
 
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use Symfony\Component\Uid\Uuid;
 
 interface ProductRepositoryInterface
@@ -12,6 +13,8 @@ interface ProductRepositoryInterface
     public function findByPublicId(Uuid $publicId): ?Product;
 
     public function findActiveBySlug(string $slug): ?Product;
+
+    public function findVariantByPublicId(Uuid $publicId): ?ProductVariant;
 
     public function slugExists(string $slug, ?int $exceptProductId = null): bool;
 

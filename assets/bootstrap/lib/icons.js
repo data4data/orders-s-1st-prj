@@ -1,4 +1,4 @@
-import { createElement, ArrowLeft, Check, ChevronDown, ChevronRight, CircleAlert, CircleCheck, CircleX, Clock, Droplet, FileText, Globe, House, Info, LayoutDashboard, LoaderCircle, Lock, LogOut, Mail, Menu, Minus, Package, PackageOpen, Pencil, Phone, Plus, Receipt, RefreshCw, Search, Settings, ShoppingCart, Store, Tag, Trash2, TriangleAlert, Truck, User, Users, WifiOff, X } from 'lucide';
+import { createElement, ArrowLeft, Check, ChevronDown, ChevronRight, CircleAlert, CircleCheck, CircleX, Clock, CreditCard, Droplet, FileText, Globe, House, Info, LayoutDashboard, LoaderCircle, Lock, LogOut, Mail, MapPin, Menu, Minus, Package, PackageOpen, Pencil, Phone, Plus, Receipt, RefreshCw, Search, Settings, ShoppingCart, Store, Tag, Trash2, TriangleAlert, Truck, User, Users, WifiOff, X } from 'lucide';
 import iconMap from '../../shared/icons.json';
 
 /** Lucide icon nodes by Lucide name. Every icon in assets/shared/icons.json must be here (npm run check:icons). */
@@ -22,6 +22,8 @@ const ICONS = {
     'log-out': LogOut,
     'mail': Mail,
     'minus': Minus,
+    'map-pin': MapPin,
+    'credit-card': CreditCard,
     'menu': Menu,
     'package': Package,
     'package-open': PackageOpen,

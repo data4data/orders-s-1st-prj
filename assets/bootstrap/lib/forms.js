@@ -196,3 +196,21 @@ export function installBusyOnSubmit(form) {
         }
     });
 }
+
+/**
+ * A checkbox with data-hides="#section" hides that section while it is ticked, and disables its
+ * fields so they are neither validated nor sent (e.g. "Delivery address same as billing").
+ */
+export function installSectionToggles() {
+    document.querySelectorAll('input[type=checkbox][data-hides]').forEach((checkbox) => {
+        const input = /** @type {HTMLInputElement} */ (checkbox);
+        const section = /** @type {HTMLElement|null} */ (document.querySelector(input.dataset.hides ?? ''));
+        if (!section) return;
+        const sync = () => {
+            section.hidden = input.checked;
+            section.querySelectorAll(FIELDS).forEach((field) => { /** @type {HTMLInputElement} */ (field).disabled = input.checked; });
+        };
+        input.addEventListener('change', sync);
+        sync();
+    });
+}

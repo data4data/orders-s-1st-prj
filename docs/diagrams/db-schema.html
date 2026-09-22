@@ -454,6 +454,7 @@ erDiagram
   }
   customer_address {
     int id PK
+    binary public_id UK "used by the account API"
     int store_id FK
     int customer_id FK
     varchar label
@@ -487,6 +488,7 @@ erDiagram
     int items_net
     int discount_net
     int shipping_net
+    decimal shipping_tax_rate "snapshot, DECIMAL(5,2)"
     int total_net
     int total_tax
     int total_gross
@@ -550,6 +552,7 @@ erDiagram
     int tax_category_id FK
     boolean is_active
     int position
+    varchar description "shown in the checkout"
   }
   payment {
     int id PK

@@ -1,0 +1,33 @@
+{% extends 'bootstrap/base.html.twig' %}
+
+{% block title %}{{ 'login.title'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="container py-5" style="max-width: 440px">
+        <h1 class="h3 mb-4">{{ 'login.title'|trans }}</h1>
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                {% if error %}
+                    <div class="alert alert-danger d-flex gap-2 align-items-start" role="alert">
+                        {{ icon('error') }}<div>{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                    </div>
+                {% endif %}
+                <form method="post" action="{{ path('customer_login') }}" data-validate novalidate>
+                    <div class="mb-3">
+                        <label class="form-label required" for="email">{{ 'register.email'|trans }}</label>
+                        <input class="form-control" type="email" id="email" name="email" value="{{ last_username }}" autocomplete="email" required autofocus>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label required" for="password">{{ 'register.password'|trans }}</label>
+                        <input class="form-control" type="password" id="password" name="password" autocomplete="current-password" required>
+                    </div>
+                    <div class="mb-3 text-end"><a class="small" href="{{ path('customer_forgot_password') }}">{{ 'login.forgot'|trans }}</a></div>
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                    {% if app.request.query.get('_target_path') %}<input type="hidden" name="_target_path" value="{{ app.request.query.get('_target_path') }}">{% endif %}
+                    <button class="btn btn-primary w-100" type="submit" data-busy-on-submit>{{ 'login.submit'|trans }}</button>
+                </form>
+            </div>
+        </div>
+        <p class="text-center mt-3">{{ 'login.no_account'|trans }} <a href="{{ path('customer_register') }}">{{ 'login.register'|trans }}</a></p>
+    </div>
+{% endblock %}

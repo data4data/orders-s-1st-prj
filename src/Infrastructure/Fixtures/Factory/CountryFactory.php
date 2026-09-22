@@ -22,6 +22,16 @@ final class CountryFactory extends PersistentObjectFactory
         return self::findOrCreate(['code' => 'NL']);
     }
 
+    public static function belgium(): Country
+    {
+        return self::findOrCreate(['code' => 'BE', 'name' => 'Belgium', 'isEu' => true]);
+    }
+
+    public static function germany(): Country
+    {
+        return self::findOrCreate(['code' => 'DE', 'name' => 'Germany', 'isEu' => true]);
+    }
+
     protected function defaults(): array
     {
         return ['code' => 'NL', 'name' => 'Netherlands', 'isEu' => true];

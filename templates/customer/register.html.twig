@@ -1,0 +1,42 @@
+{% extends 'bootstrap/base.html.twig' %}
+
+{% block title %}{{ 'register.title'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="container py-5" style="max-width: 760px">
+        <h1 class="h3 mb-1">{{ 'register.title'|trans }}</h1>
+        <p class="text-body-secondary mb-4">{{ 'register.intro'|trans }}</p>
+        {{ form_start(form, {attr: {novalidate: 'novalidate', 'data-validate': '', 'data-unsaved-guard': '', 'data-error-summary': '#register-summary'}}) }}
+            <div id="register-summary"></div>
+            {{ form_errors(form) }}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h5 mb-3">{{ 'register.account'|trans }}</h2>
+                    <div class="row g-3">
+                        <div class="col-md-6">{{ form_row(form.firstName) }}</div>
+                        <div class="col-md-6">{{ form_row(form.lastName) }}</div>
+                        <div class="col-md-6">{{ form_row(form.email) }}</div>
+                        <div class="col-md-6">{{ form_row(form.password) }}</div>
+                        <div class="col-md-6">{{ form_row(form.phone) }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h5 mb-3">{{ 'register.billing'|trans }}</h2>
+                    {% include 'customer/_address_fields.html.twig' with {address: form.billing} %}
+                    <div class="mt-3">{{ form_row(form.deliverySameAsBilling, {attr: {'data-hides': '#delivery-section'}}) }}</div>
+                </div>
+            </div>
+            <div class="card shadow-sm mb-4" id="delivery-section">
+                <div class="card-body p-4">
+                    <h2 class="h5 mb-3">{{ 'register.delivery'|trans }}</h2>
+                    {% include 'customer/_address_fields.html.twig' with {address: form.delivery} %}
+                </div>
+            </div>
+            {{ form_row(form.acceptTerms) }}
+            <button class="btn btn-primary btn-lg" type="submit" data-busy-on-submit>{{ 'register.submit'|trans }}</button>
+            <p class="mt-3">{{ 'register.have_account'|trans }} <a href="{{ path('customer_login') }}">{{ 'login.submit'|trans }}</a></p>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

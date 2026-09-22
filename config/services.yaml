@@ -25,6 +25,9 @@ services:
             tags: ['app.discount_rule']
         App\Domain\Shipping\ShippingCalculatorInterface:
             tags: ['app.shipping_calculator']
+        # Each gateway also names its code with #[AsTaggedItem('<code>')] (PaymentGatewayRegistry).
+        App\Application\Payment\PaymentGatewayInterface:
+            tags: ['app.payment_gateway']
 
     App\:
         resource: '../src/'

@@ -3,7 +3,7 @@
 What you can open and click today, and what you should see. This file is updated at the end of
 every phase; sections for features that don't exist yet are listed at the bottom.
 
-**Last updated:** Phase 4 (Catalog), 2026-09-22.
+**Last updated:** Phase 5 (Customers, cart, checkout), 2026-09-22.
 
 ## Before you start
 
@@ -17,6 +17,9 @@ every phase; sections for features that don't exist yet are listed at the bottom
    npm run build          # or keep `npm run dev` running while you work
    ```
    Run `composer demo:reset` again whenever you want the original demo data back (for example after editing products).
+
+Demo customer (per shop, password `password`): `jan@example.test` has an account in **MyOil's Auto**
+(home address in Amsterdam, garage in Utrecht) and in **MyOil's Industrie** (a company address), not in Agri.
 
 Demo staff logins (password for both: `password`):
 
@@ -216,7 +219,7 @@ Real errors in development show Symfony's developer page instead; the `/_error/�
 
 ### Automated browser tests
 
-`npx playwright test` runs 20 browser checks (16 of the UI foundation, 4 of the catalog in section 7) of all of the above (uses your installed Chrome and PHP's built-in
+`npx playwright test` runs 22 browser checks (16 of the UI foundation, 4 of the catalog in section 7, 2 of the shopper journey in section 8) of all of the above (uses your installed Chrome and PHP's built-in
 server, so it works even when Herd is not running).
 
 ## 7. Catalog (Phase 4)
@@ -262,11 +265,63 @@ server, so it works even when Herd is not running).
 | https://admin.shop.test/catalog/attributes | Attributes with their options; deleting *SAE viscosity* is refused (used by products) |
 | Without picking a store | *Pick a store* message instead of the catalog |
 
+## 8. Customers, cart and checkout (Phase 5)
+
+Coupons in every shop: `WELCOME10` (10 %, from €25 net), `FIVEOFF` (€5 off), `SUMMER2025` (expired).
+Shipping: PostNL Standard €6.99, free from €100 (NL, BE) · Next-day Express €14.99 (NL) · DHL Europe by weight (BE, DE) ·
+Pallet delivery €89.90 (Industrie and Agri).
+
+### Cart
+
+| Do | You should see |
+|---|---|
+| https://myoils-auto.shop.test/p/synth-pro-5w-30 → pick **5 L** → **Add to cart** | Toast *… is in your cart*, the mini-cart opens on the right, the header badge shows **1** |
+| In the mini-cart click **+** a few times quickly | One update after you stop clicking; badge and totals follow |
+| **View cart** (https://myoils-auto.shop.test/cart) | Lines with quantity, remove, stock notice; summary: subtotal, shipping *PostNL Standard €6.99*, total, VAT included |
+| Enter coupon `nope` | *This code is not valid.* under the field |
+| Enter `summer2025` | *This code has expired.* |
+| Enter `welcome10` | Green coupon row; *Discount (WELCOME10)*; with 2 × 5 L the total is **€96.89** |
+| Raise the quantity above the stock (208 L drum has 2) | Warning toast *Only 2 available.* |
+| Open https://myoils-industrie.shop.test/cart | Empty: every shop has its own cart |
+
+### Checkout as a guest
+
+| Do | You should see |
+|---|---|
+| **Checkout** | Steps *Account → Addresses → Shipping → Review & pay*, order summary on the right |
+| **Continue** without email | *Enter your email address.* |
+| Enter an email, fill the billing address with postcode `12` | Continue works (the server checks on submit) |
+| Shipping step | PostNL Standard / Express with prices; *DHL Europe: Not available for this address* |
+| Untick *Deliver to the billing address*, choose country **Germany** for delivery | Only DHL Europe is offered, priced by weight |
+| Review: accept the terms, **Pay €…** | The wizard jumps back to *Addresses*: *Enter a Dutch postcode like 1012 AB.* |
+| Fix the postcode, go to Review, **Pay** | The **Test payment** page (local fake provider) with the same amount |
+| **Pay now** | *Thank you for your order!*, order number `AUTO-000001`, status **Awaiting payment** (the webhook that marks it paid arrives in Phase 6), lines, addresses, totals; the cart badge is gone |
+| Copy the confirmation address into a private window | *Order not found*: only the session that placed it (or the account owner) sees it |
+| Change `amount=` in the test payment address | *This payment link is invalid or has expired.* (signed URL) |
+
+Emails (password reset) arrive in Mailpit: http://localhost:8025 (run `php bin/console messenger:consume async` to send queued mail).
+
+### Accounts
+
+| Do | You should see |
+|---|---|
+| https://myoils-auto.shop.test/register | Twig form: your details, billing address, *Deliver to the billing address* ticked (delivery fields hidden), terms |
+| Submit empty | Red messages under every required field and an error summary |
+| Register with `jan@example.test` | *An account with this email already exists…* |
+| Register with a new email | Logged in, *Hello, …* on https://myoils-auto.shop.test/account |
+| **Addresses** → delete the only address | Toast *At least one billing address is required.* |
+| **Add address** (office, *Use for billing* only), then *Make default billing* | Tags move to the new card |
+| **Profile & security** → wrong current password | *This is not your current password.* |
+| **Log out**, then https://myoils-auto.shop.test/login as `jan@example.test` / `password` | Header shows **Jan**; the account lists orders placed while logged in |
+| Log in at https://myoils-industrie.shop.test/login with a customer made in Auto | *Invalid credentials*: accounts are per shop |
+| Add to cart as a guest, then log in | The guest cart joins Jan's cart |
+| https://myoils-auto.shop.test/forgot-password → `jan@example.test` | *If an account exists…*; the email in Mailpit has a link that works once, for one hour |
+| Checkout while logged in | Starts at *Addresses* with Jan's saved addresses to choose from |
+
 ## Not testable yet
 
 | Feature | Arrives in |
 |---|---|
-| Registration, login page, account, cart, checkout, fake payment | Phase 5 |
-| Order workflow buttons, admin dashboard | Phase 6 |
+| Payment confirmation (webhook → *Payment received*), order workflow buttons, admin orders and dashboard | Phase 6 |
 | Landing, about, FAQ, contact pages | Phase 7 |
 | Bigger demo catalog, customers and orders | Phase 8 |
