@@ -308,6 +308,7 @@ erDiagram
     varchar brand "MyOil's"
     text description
     boolean is_active
+    int version "optimistic lock (admin edits)"
     datetime created_at
     datetime updated_at
   }
@@ -363,9 +364,7 @@ erDiagram
     varchar type "sds | tds | approval"
     varchar title
     varchar locale
-    varchar file_path
-    varchar mime_type
-    int size_bytes
+    varchar url "https address of the PDF"
     datetime created_at
   }
   product_image {
@@ -419,7 +418,7 @@ erDiagram
         <ul>
           <li>Attributes are per store and drive the PrimeVue catalog filters.</li>
           <li><code>product_category</code> is a plain join table. It is protected through its parents, which are both tenant-filtered.</li>
-          <li>Safety data sheets (SDS) and technical data sheets (TDS) are attached as <code>product_document</code>.</li>
+          <li>Safety data sheets (SDS) and technical data sheets (TDS) are attached as <code>product_document</code> (an https address for now; uploads later).</li>
           <li>Images are <strong>links</strong> (<code>https://</code> URLs) in <code>product_image</code>. A row with a <code>product_variant_id</code> shows only for that pack size.</li>
         </ul>
       </aside>
@@ -657,7 +656,7 @@ erDiagram
           <tr><td>Uniqueness</td><td>Business keys are unique <em>per store</em>: <code>(store_id, sku)</code>, <code>(store_id, slug)</code>, <code>(store_id, email)</code>, <code>(store_id, order_number)</code></td><td>Stores are independent namespaces.</td></tr>
           <tr><td>Money &amp; rates</td><td>Amounts: <code>INT</code> minor units (cents). VAT and percentage rates: <code>DECIMAL(5,2)</code>.</td><td>No floating-point errors. Rates are exact decimals; each line is rounded half-up to cents.</td></tr>
           <tr><td>Snapshots</td><td>Orders copy the prices, VAT, names and addresses they depend on.</td><td>History stays correct when the catalog or tax rates change.</td></tr>
-          <tr><td>Concurrency</td><td><code>version</code> column (Doctrine optimistic lock) on <code>product_variant</code> and <code>orders</code></td><td>Prevents overselling and double transitions.</td></tr>
+          <tr><td>Concurrency</td><td><code>version</code> column (Doctrine optimistic lock) on <code>product</code>, <code>product_variant</code> and <code>orders</code></td><td>Prevents overselling and double transitions.</td></tr>
           <tr><td>Time</td><td><code>DATETIME</code> stored in UTC as <code>datetime_immutable</code></td><td>Consistent across stores in different time zones.</td></tr>
           <tr><td>Enums</td><td><code>VARCHAR</code> mapped to PHP backed enums</td><td>New values need no <code>ALTER TABLE</code>.</td></tr>
           <tr><td>Framework tables</td><td><code>messenger_messages</code>, <code>doctrine_migration_versions</code></td><td>Platform-level, not shown in the diagrams.</td></tr>

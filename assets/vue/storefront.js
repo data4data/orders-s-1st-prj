@@ -11,6 +11,8 @@ import StorefrontFooter from './storefront/StorefrontFooter.vue';
 
 /** Page components by name, loaded on demand: <div data-vue-page="UiKit" data-props='{…}'>. */
 const pages = {
+    Catalog: () => import('./pages/CatalogPage.vue'),
+    Product: () => import('./pages/ProductPage.vue'),
     UiKit: () => import('./pages/UiKit.vue'),
 };
 const layouts = { StorefrontHeader, StorefrontFooter };

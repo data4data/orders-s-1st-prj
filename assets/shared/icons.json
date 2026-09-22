@@ -37,5 +37,6 @@
     "alert": "circle-alert",
     "brand": "droplet",
     "mail": "mail",
-    "clock": "clock"
+    "clock": "clock",
+    "remove": "minus"
 }

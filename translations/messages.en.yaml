@@ -18,6 +18,9 @@ layout:
         privacy: Privacy
         rights: All prices include VAT unless stated otherwise.
 
+catalog:
+    title: All products
+
 errors:
     reference: 'Reference: %code%'
     back_home: Back to home

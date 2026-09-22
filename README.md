@@ -27,14 +27,13 @@ npm run dev                        # Vite dev server on port 5174
 Create the database and load the demo data:
 
 ```bash
-php bin/console doctrine:migrations:migrate -n
-php bin/console foundry:load-fixtures main -n
+composer demo:reset                # drop + create the database, run the migrations, load the demo data
 ```
 
 | Host | What |
 |---|---|
 | `https://myoils-auto.shop.test` | MyOil's Auto (also `myoils-industrie` and `myoils-agri`) |
-| `https://admin.shop.test` | Admin (API only for now) |
+| `https://admin.shop.test` | Admin SPA (catalog since Phase 4) |
 
 Demo staff (password `password`): `admin@myoils.test` (super-admin) and `manager@myoils.test`
 (manager of Auto and Industrie).

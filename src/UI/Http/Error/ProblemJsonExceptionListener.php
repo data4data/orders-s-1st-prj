@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\UI\Http\Error;
 
+use App\Application\Exception\NotFoundException;
+use App\Application\Tenancy\Exception\MissingTenantException;
 use App\Application\Tenancy\Exception\ReadOnlyTenantException;
 use App\Application\Tenancy\Exception\StoreAccessDeniedException;
 use App\Application\Tenancy\Exception\StoreNotFoundException;
+use App\Application\Validation\ValidationException;
 use Doctrine\ORM\OptimisticLockException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -50,7 +53,8 @@ final readonly class ProblemJsonExceptionListener
             [] !== $violations => [422, 'Some fields are not filled in correctly.', []],
             $exception instanceof HttpExceptionInterface => [$exception->getStatusCode(), $exception->getMessage(), $exception->getHeaders()],
             $exception instanceof StoreAccessDeniedException, $exception instanceof ReadOnlyTenantException => [403, $exception->getMessage(), []],
-            $exception instanceof StoreNotFoundException => [404, $exception->getMessage(), []],
+            $exception instanceof StoreNotFoundException, $exception instanceof NotFoundException => [404, $exception->getMessage(), []],
+            $exception instanceof MissingTenantException => [409, 'Select a store first.', []],
             $exception instanceof OptimisticLockException => [409, 'This was changed in the meantime. Reload to see the latest version.', []],
             $exception instanceof \DomainException => [422, $exception->getMessage(), []],
             default => [500, 'Something went wrong on our side.', []],
@@ -85,6 +89,9 @@ final readonly class ProblemJsonExceptionListener
         for ($e = $exception; null !== $e; $e = $e->getPrevious()) {
             if ($e instanceof ValidationFailedException) {
                 return $this->fromList($e->getViolations());
+            }
+            if ($e instanceof ValidationException) {
+                return $e->violations;
             }
         }
 

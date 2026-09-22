@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Storefront;
 
+use App\Application\Catalog\Port\CategoryRepositoryInterface;
 use App\Application\Tenancy\Port\StoreRepositoryInterface;
 use App\Application\Tenancy\TenantContextInterface;
 use App\Application\Tenancy\View\StoreView;
@@ -15,6 +16,7 @@ final readonly class GetStorefrontLayoutHandler
     public function __construct(
         private TenantContextInterface $tenantContext,
         private StoreRepositoryInterface $stores,
+        private CategoryRepositoryInterface $categories,
     ) {
     }
 
@@ -33,7 +35,12 @@ final readonly class GetStorefrontLayoutHandler
             }
         }
 
-        // Categories and the cart arrive in Phases 4 and 5.
-        return new StorefrontLayoutView(StoreView::fromStore($store), $otherShops, [], 0);
+        $categories = array_map(
+            static fn ($category) => ['name' => $category->getName(), 'slug' => $category->getSlug()],
+            $this->categories->findTopLevel(activeOnly: true),
+        );
+
+        // The cart arrives in Phase 5.
+        return new StorefrontLayoutView(StoreView::fromStore($store), $otherShops, $categories, 0);
     }
 }
