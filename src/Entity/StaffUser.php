@@ -111,6 +111,17 @@ class StaffUser implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->isSuperAdmin;
     }
 
+    public function rename(string $firstName, string $lastName): void
+    {
+        $this->firstName = $firstName;
+        $this->lastName = $lastName;
+    }
+
+    public function grantSuperAdmin(bool $superAdmin): void
+    {
+        $this->isSuperAdmin = $superAdmin;
+    }
+
     public function recordLogin(\DateTimeImmutable $at): void
     {
         $this->lastLoginAt = $at;

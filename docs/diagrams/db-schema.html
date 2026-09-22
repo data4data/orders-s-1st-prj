@@ -192,6 +192,7 @@ erDiagram
     int low_stock_threshold "per store"
     boolean is_active
     datetime created_at
+    json notifications "email switches, all on by default"
   }
   store_domain {
     int id PK
@@ -596,8 +597,10 @@ erDiagram
     int store_id FK
     varchar name
     varchar email
-    varchar subject
+    varchar subject "order | product | business | other"
+    varchar order_number "optional"
     text message
+    datetime read_at "NULL = unread"
     datetime created_at
   }
 

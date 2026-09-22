@@ -1,0 +1,26 @@
+{% extends 'content/_page.html.twig' %}
+
+{% block title %}{{ 'content.about.title'|trans }}{% endblock %}
+{% block heading %}{{ 'content.about.title'|trans }}{% endblock %}
+
+{% block content %}
+    {% set store = layout.store.name %}
+    <p class="lead">{{ 'content.about.lead'|trans({'%store%': store}) }}</p>
+    <p>{{ 'content.about.p1'|trans }}</p>
+    <p>{{ 'content.about.p2'|trans }}</p>
+    <div class="row g-3 my-4">
+        {% for key, iconName in {warehouse: 'store', approvals: 'check', support: 'phone'} %}
+            <div class="col-md-4">
+                <div class="card h-100"><div class="card-body">
+                    <div class="fs-3 text-primary">{{ icon(iconName) }}</div>
+                    <div class="fw-semibold">{{ ('content.about.card.' ~ key ~ '_title')|trans }}</div>
+                    <div class="small text-body-secondary">{{ ('content.about.card.' ~ key)|trans }}</div>
+                </div></div>
+            </div>
+        {% endfor %}
+    </div>
+    {% if layout.otherShops is not empty %}
+        <h2 class="h5">{{ 'content.about.other_shops'|trans }}</h2>
+        <ul>{% for shop in layout.otherShops %}<li><a href="{{ app.request.scheme }}://{{ shop.host }}/">{{ shop.name }}</a></li>{% endfor %}</ul>
+    {% endif %}
+{% endblock %}

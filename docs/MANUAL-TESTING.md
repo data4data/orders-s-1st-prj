@@ -3,7 +3,7 @@
 What you can open and click today, and what you should see. This file is updated at the end of
 every phase; sections for features that don't exist yet are listed at the bottom.
 
-**Last updated:** Phase 6 (Order and payment workflows), 2026-09-22.
+**Last updated:** Phase 7 (Content pages and admin settings), 2026-09-22.
 
 ## Before you start
 
@@ -46,7 +46,6 @@ Open each link. The browser shows JSON (Chrome and Firefox format it nicely; tic
 only from the address, and an unknown address shows nothing (fail closed).
 
 > The 404 pages are currently Symfony's developer error page. The branded error pages come in Phase 3.
-> `https://myoils-auto.shop.test/` itself is also a 404 until the landing page exists (Phase 7).
 
 ## 2. Admin store switcher via the API (`admin.shop.test`)
 
@@ -221,7 +220,7 @@ Real errors in development show Symfony's developer page instead; the `/_error/�
 
 ### Automated browser tests
 
-`npx playwright test` runs 23 browser checks (UI foundation, catalog in section 7, shopper journey in section 8, payments and admin orders in section 9). It starts its own worker of all of the above (uses your installed Chrome and PHP's built-in
+`npx playwright test` runs 23 browser checks (UI foundation, catalog in section 7, shopper journey in section 8, payments and admin orders in section 9). It starts its own worker; section 10 adds 4 checks (landing, contact, FAQ/SDS, branding) of all of the above (uses your installed Chrome and PHP's built-in
 server, so it works even when Herd is not running).
 
 ## 7. Catalog (Phase 4)
@@ -357,9 +356,45 @@ Keep `composer worker` running. Log in to the admin as `manager@myoils.test` and
 `php bin/console app:orders:expire --minutes=0` cancels every order still awaiting payment (the worker does
 the same every 5 minutes for orders older than 60 minutes). The timeline says *Payment not received within 0 minutes.*
 
+## 10. Content pages and admin settings (Phase 7)
+
+### Shop pages (Twig + Bootstrap + jQuery)
+
+| Open | You should see |
+|---|---|
+| https://myoils-auto.shop.test/ | Hero *The right oil for every engine*, category tiles with product counts, 4 featured products, oil finder, shipping summary, business banner |
+| Oil finder: choose **5W-30**, *Show matching products* | Catalog filtered on SAE 5W-30 (3 products) |
+| https://myoils-industrie.shop.test/ | The oil finder asks for **ISO VG**; *Pallet delivery* in the shipping summary |
+| https://myoils-auto.shop.test/about · /faq · /terms · /privacy | Text pages; FAQ answers open in an accordion |
+| https://myoils-auto.shop.test/contact | Send empty: red fields and a summary. Order number `12`: *An order number looks like AUTO-000123.* Fill correctly: *Thank you…*, the form disappears; the shop gets an email in Mailpit (worker running) |
+| Send the form 4 times within 10 minutes | The 4th answers with the 429 countdown toast |
+| https://myoils-auto.shop.test/shipping-info | Methods with prices incl. VAT, free-from amount, weight brackets, countries |
+| https://myoils-auto.shop.test/safety-data-sheets | All SDS links; typing in the filter narrows the list |
+
+### Admin (log in as `manager@myoils.test`, pick MyOil's Auto)
+
+| Open | You should see |
+|---|---|
+| **Customers** | Jan de Vries with orders and amount spent; click for addresses and orders |
+| **Customers → Contact messages** | Your message with an unread dot and a badge on the tab; opening it marks it read; *Reply to …* opens your mail program |
+| **Coupons** | WELCOME10, FIVEOFF, SUMMER2025; *New coupon* (percentage or fixed, minimum, dates, limit); switched-off codes are refused in the shop |
+| **Settings → Store profile & branding** | Change the accent colour and save: the shop's buttons change colour |
+| **Settings → Domains** | Add a host name, make it primary, remove the old one (the primary one cannot be removed) |
+| **Settings → Shipping methods** | Edit prices (net), weight brackets and countries; the checkout shows the change |
+| **Settings → Staff & roles** | Add `admin@myoils.test` as staff; a manager cannot appoint owners |
+| **Settings → Email notifications** | Switch off *Order shipped*: shipping an order sends no email |
+
+### Platform (log in as `admin@myoils.test`)
+
+| Open | You should see |
+|---|---|
+| **Platform → Stores** | The three shops; *New store* with its host name; switching a shop off makes it answer *Store not found* |
+| **Platform → Countries & VAT** | NL rates with history (current ones in bold); adding a 22 % standard rate from 2027 is refused (overlaps the open-ended 21 %) |
+| **Platform → Staff users** | Create a staff user and log in with it; you cannot remove your own super-admin rights |
+| **Platform → System** | Waiting messages per queue, failed jobs (retry, delete), recent payment webhooks with their result |
+
 ## Not testable yet
 
 | Feature | Arrives in |
 |---|---|
-| Landing, about, FAQ, contact pages | Phase 7 |
 | Bigger demo catalog, customers and orders | Phase 8 |

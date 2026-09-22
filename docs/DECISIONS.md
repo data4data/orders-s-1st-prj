@@ -94,3 +94,9 @@ adding the date and reason. Don't silently diverge in code.
 | 85 | Payment retry | A new payment attempt per retry; an open attempt is reused | Keeps every attempt in the history |
 | 86 | Unpaid orders | Cancelled after 60 minutes by the scheduler (every 5 minutes) and on demand with `app:orders:expire` | Reserved stock never stays blocked |
 | 87 | Charts | `chart.js` 4.5.1 (MIT) through PrimeVue `Chart` | Licence rule #67 |
+| 88 | Admin configuration screens | Settings and Platform handlers use Doctrine directly (plain CRUD on configuration); business flows (cart, checkout, workflows) keep their ports | Less ceremony where there is no business rule to isolate |
+| 89 | Settings permissions | Settings need ROLE_STORE_MANAGER; only owners (or super-admins) add, remove or appoint owners; a shop always keeps one owner | Nobody locks a shop out by accident |
+| 90 | Email notifications | Per-store switches (order paid/shipped/cancelled/refunded, contact message), all on by default, stored as JSON on `store` | Simple, no extra table |
+| 91 | Contact form | AJAX with jQuery validation, honeypot field, 3 per 10 minutes per IP, email to the shop's contact address with Reply-To the sender | Low spam without a CAPTCHA |
+| 92 | Landing data | Featured = first in-stock products; oil finder uses the shop's first filterable attribute; shipping summary comes from the shipping methods | Works for every shop without extra settings; a real finder wizard comes later |
+| 93 | Test rate limits | In tests the limiter storage is `cache.adapter.doctrine_dbal`: kept across the requests of one test, reset with each test's database | An array pool is emptied by every request, a file pool leaks between tests |

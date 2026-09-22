@@ -145,5 +145,5 @@ test('a customer registers with one address and manages the address book', async
 
     await page.getByRole('link', { name: 'Profile & security' }).click();
     await page.getByRole('button', { name: 'Log out' }).click();
-    await expect(page).toHaveURL(/\/catalog$/);
+    await expect(page).toHaveURL(`${AUTO}/`);
 });

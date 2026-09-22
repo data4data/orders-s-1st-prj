@@ -1,0 +1,12 @@
+{% extends 'content/_page.html.twig' %}
+
+{% block title %}{{ 'content.terms.title'|trans }}{% endblock %}
+{% block heading %}{{ 'content.terms.title'|trans }}{% endblock %}
+
+{% block content %}
+    <div class="alert alert-info small">{{ 'content.legal_notice'|trans }}</div>
+    {% for section in 1..4 %}
+        <h2 class="h5 mt-4">{{ ('content.terms.s' ~ section ~ '_title')|trans }}</h2>
+        <p>{{ ('content.terms.s' ~ section)|trans({'%store%': layout.store.name, '%email%': layout.store.contactEmail ?? ''}) }}</p>
+    {% endfor %}
+{% endblock %}

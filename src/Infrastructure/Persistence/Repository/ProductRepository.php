@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Repository;
 
 use App\Application\Catalog\Port\ProductRepositoryInterface;
+use App\Domain\Catalog\DocumentType;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -34,6 +35,16 @@ final class ProductRepository extends ServiceEntityRepository implements Product
     public function findVariantByPublicId(Uuid $publicId): ?ProductVariant
     {
         return $this->getEntityManager()->getRepository(ProductVariant::class)->findOneBy(['publicId' => $publicId]);
+    }
+
+    public function findActiveWithDocuments(DocumentType $type): array
+    {
+        /** @var list<Product> $products */
+        $products = $this->createQueryBuilder('p')->addSelect('d')->join('p.documents', 'd')
+            ->where('p.isActive = true')->andWhere('d.type = :type')->setParameter('type', $type)
+            ->orderBy('p.name', 'ASC')->getQuery()->getResult();
+
+        return $products;
     }
 
     public function slugExists(string $slug, ?int $exceptProductId = null): bool

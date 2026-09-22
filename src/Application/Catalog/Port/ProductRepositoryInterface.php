@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Catalog\Port;
 
+use App\Domain\Catalog\DocumentType;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use Symfony\Component\Uid\Uuid;
@@ -15,6 +16,9 @@ interface ProductRepositoryInterface
     public function findActiveBySlug(string $slug): ?Product;
 
     public function findVariantByPublicId(Uuid $publicId): ?ProductVariant;
+
+    /** @return list<Product> active products with at least one document of this type, by name */
+    public function findActiveWithDocuments(DocumentType $type): array;
 
     public function slugExists(string $slug, ?int $exceptProductId = null): bool;
 

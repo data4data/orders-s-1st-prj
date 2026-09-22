@@ -52,6 +52,11 @@ class StoreDomain
         return $this->host;
     }
 
+    public function markPrimary(bool $primary): void
+    {
+        $this->isPrimary = $primary;
+    }
+
     public function isPrimary(): bool
     {
         return $this->isPrimary;
