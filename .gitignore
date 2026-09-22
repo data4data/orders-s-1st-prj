@@ -26,3 +26,5 @@
 /phpstan.neon
 .DS_Store
 ###< project ###
+/test-results/
+/playwright-report/

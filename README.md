@@ -19,6 +19,8 @@ npm install
 docker compose up -d --wait        # MySQL 8.4 on 127.0.0.1:3307, Mailpit on :1025 / http://localhost:8025
 herd link shop                     # serves the app at shop.test and every *.shop.test subdomain
 herd secure shop                   # HTTPS (asks for your macOS password)
+# The project is inside ~/Documents: give Herd Full Disk Access (System Settings → Privacy & Security),
+# otherwise macOS blocks it from reading the files (pages without styles, or hanging requests).
 npm run dev                        # Vite dev server on port 5174
 ```
 
@@ -47,8 +49,12 @@ vendor/bin/php-cs-fixer fix --dry-run   # coding standards
 vendor/bin/phpstan analyse              # static analysis, level 8 (run `bin/console cache:warmup` first)
 vendor/bin/deptrac analyse              # layer rules: Domain depends on nothing
 vendor/bin/phpunit                      # all tests (suites: unit, integration, functional)
-npm run check                           # ESLint, no-emoji check, build, CSS isolation check
+npm run check                           # ESLint, no-emoji check, icon map check, build, CSS isolation check
+npx playwright test                     # browser tests of the UI standards (needs the demo data)
 ```
+
+UI kit (development only): `https://myoils-auto.shop.test/ui-kit` and `…/ui-kit/vue` show every UI standard.
+Maintenance mode: `php bin/console app:maintenance on|off`.
 
 Domain coverage (must be 100 %) needs a coverage driver, which free Herd lacks; run it in Docker:
 

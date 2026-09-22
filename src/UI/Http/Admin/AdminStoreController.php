@@ -11,7 +11,7 @@ use App\Application\Tenancy\Exception\StoreAccessDeniedException;
 use App\Application\Tenancy\Exception\StoreNotFoundException;
 use App\Application\Tenancy\Query\GetTenantStatus;
 use App\Application\Tenancy\Query\ListAdminStores;
-use App\UI\Http\ProblemResponse;
+use App\UI\Http\Error\ProblemDetails;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,15 +49,15 @@ final class AdminStoreController extends AbstractController
     {
         $store = $request->toArray()['store'] ?? null;
         if (!\is_string($store) || '' === $store) {
-            return ProblemResponse::create(422, 'Send {"store": "<store public id>"} or {"store": "all"}.');
+            return ProblemDetails::response(422, 'Send {"store": "<store public id>"} or {"store": "all"}.');
         }
 
         try {
             $this->commandBus->dispatch(new SwitchAdminStore($this->staffEmail(), 'all' === $store ? null : $store));
         } catch (StoreAccessDeniedException $exception) {
-            return ProblemResponse::create(403, $exception->getMessage());
+            return ProblemDetails::response(403, $exception->getMessage());
         } catch (StoreNotFoundException $exception) {
-            return ProblemResponse::create(404, $exception->getMessage());
+            return ProblemDetails::response(404, $exception->getMessage());
         }
 
         return new JsonResponse(null, 204);

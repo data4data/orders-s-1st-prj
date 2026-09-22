@@ -7,7 +7,7 @@ namespace App\UI\Http\Api;
 use App\Application\Bus\QueryBusInterface;
 use App\Application\Tenancy\Query\GetTenantStatus;
 use App\Application\Tenancy\View\TenantStatusView;
-use App\UI\Http\ProblemResponse;
+use App\UI\Http\Error\ProblemDetails;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -29,6 +29,6 @@ final class StoreController extends AbstractController
 
         return null !== $status->store
             ? $this->json($status->store)
-            : ProblemResponse::create(404, 'No store is selected.');
+            : ProblemDetails::response(404, 'No store is selected.');
     }
 }

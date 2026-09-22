@@ -1,0 +1,76 @@
+# UI texts for Twig pages (decision #38: English first, every text through a key).
+# Client-side texts live in assets/shared/i18n/en.json.
+layout:
+    skip_to_content: Skip to content
+    other_shops: Other MyOil's shops
+    search_placeholder: Search products, SAE, specifications…
+    search: Search
+    account: My account
+    cart: Cart
+    contact_us: Contact us
+    footer:
+        about: About
+        faq: FAQ
+        contact: Contact
+        shipping_info: Shipping info
+        safety_data_sheets: Safety data sheets
+        terms: Terms
+        privacy: Privacy
+        rights: All prices include VAT unless stated otherwise.
+
+errors:
+    reference: 'Reference: %code%'
+    back_home: Back to home
+    browse_catalog: Browse catalog
+    try_again: Try again
+    log_in: Log in
+    generic_4xx:
+        title: This request could not be completed
+        text: Something about this request was not right. Go back and try again.
+    generic_5xx:
+        title: Something went wrong
+        text: We could not show this page. Please try again in a moment. If it keeps happening, contact us and mention the reference below.
+    '403':
+        title: No access
+        text: You do not have permission to open this page.
+    '404':
+        title: We can't find this page
+        text: It may have moved, or the link is wrong. Try searching or go back to the shop.
+    '419':
+        title: Your session expired
+        text: For your security, the page was open too long. Reload it and try again; what you typed is kept where possible.
+    '429':
+        title: Too many attempts
+        text: Please wait before trying again.
+        countdown: 'You can try again in <span data-countdown="%seconds%">%seconds%</span> s.'
+    '500':
+        title: Something went wrong
+        text: This is our fault, not yours. Please try again in a moment. If it keeps happening, contact us and mention the reference below.
+    '503':
+        title: We'll be right back
+        text: The shop is being updated. Please try again in a few minutes.
+    store_not_found:
+        title: Store not found
+        text: There is no shop at this address. Check the address, or visit one of our shops.
+
+admin:
+    title: Admin
+    login:
+        title: Log in to the admin
+        email: Email
+        password: Password
+        submit: Log in
+        invalid: The email or password is not correct.
+
+ui_kit:
+    title: UI kit
+    intro: Every UI standard from docs/diagrams/pages.html, working. Development only.
+    form:
+        name: Name
+        email: Email
+        postcode: Postcode
+        postcode_help: Dutch format, e.g. 1012 AB
+        message: Message
+        send: Send
+        send_without_checks: Send without browser checks
+        sent: Thanks, your message was sent.

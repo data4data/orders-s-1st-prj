@@ -17,7 +17,7 @@ A multi-store e-commerce platform for lubricants (engine, industrial and agricul
 | Messaging | Symfony Messenger: sync `command.bus` / `query.bus`, async Doctrine transport for emails and webhooks |
 | Order lifecycle | Symfony Workflow (`state_machine`) for orders and payments |
 | Server-rendered pages | Twig + Bootstrap 5.3 + jQuery 4 |
-| Interactive pages | Vue 3.5 + PrimeVue 5 (Aura theme) + Tailwind CSS 4 |
+| Interactive pages | Vue 3.5 + PrimeVue 4.5.5 (Aura theme, MIT; pinned) + Tailwind CSS 4 |
 | Icons | Lucide in both stacks; no emojis |
 | Asset build | Vite 8 via `pentatrion/vite-bundle`, with three isolated entries (dev server on port 5174) |
 | Local runtime | Laravel Herd (PHP, `*.shop.test` hosts) + Docker Compose (MySQL 8.4 on port 3307, Mailpit) |
@@ -213,7 +213,8 @@ Isolation is enforced, not just agreed:
     Shipping methods, Payment gateway, Staff & roles, Email notifications.
   - *Platform* (super-admin only): Stores, Countries & VAT rates, Tax categories, Staff users, System.
 
-Page-by-page sketches are in [`docs/diagrams/pages.html`](docs/diagrams/pages.html).
+Page-by-page sketches are in [`docs/diagrams/pages.html`](docs/diagrams/pages.html). Every UI standard is
+demonstrated on the dev-only UI kit pages `/ui-kit` (Bootstrap) and `/ui-kit/vue` (Vue).
 
 ## 10. UI standards and error handling
 
@@ -227,7 +228,8 @@ Both stacks implement the same behaviour. There is one helper per stack, and the
 | Unsaved changes | Edit forms track "dirty" state. Leaving through in-app navigation opens the standard "Leave without saving?" dialog. Closing or reloading the tab uses the browser's native `beforeunload` prompt |
 | Icons | **No emojis anywhere.** One library, **Lucide** (SVG): `lucide-vue-next` in Vue, `symfony/ux-icons` (`ux_icon('lucide:…')`) in Twig. PrimeVue's own icons are replaced in our wrapper components. One semantic icon map is shared by both stacks |
 | Loading / empty | Skeletons for content, a spinner on the clicked button (disabled to prevent double submits), and empty states with one action |
-| API errors | Always RFC 7807 `application/problem+json`, with `violations[]` for field errors |
+| API errors | Always RFC 7807 `application/problem+json`, with `violations[]` for field errors (`ProblemJsonExceptionListener`); one shared client `assets/shared/http/api-client.js` does the automatic parts (419 retry, GET backoff, timeout, offline) and each stack reacts with its own toasts and dialogs |
+| CSRF | Forms: Symfony form CSRF. JSON API: `X-CSRF-Token` header (token id `api`, printed in `<meta name="csrf-token">`, fresh via `GET /api/csrf-token`); missing or expired → 419 |
 | Error handling | Every status has a defined reaction: 400, 401, 403, 404, 405, 409, 413, 419 (CSRF), 422, **429 with a `Retry-After` countdown**, 500 (with a reference code), 502, 503 and 504 (with retry and backoff), offline, timeout, and JS runtime errors. **Any other status** falls back to a generic 4xx or 5xx handling, so nothing goes unhandled |
 | Rate limiting | Symfony RateLimiter on login, registration, password reset, contact form, coupon apply, checkout, storefront and admin APIs. Webhooks are protected by signature instead |
 | Error pages | Branded Bootstrap pages: 404, 403, 419, 429, 500, 503, plus a neutral "store not found" page. Every response has an `X-Request-Id`, which is logged and shown as the reference code |
