@@ -37,7 +37,8 @@ composer worker                    # keep running: payment webhooks, emails, sch
 | `https://admin.shop.test` | Admin SPA: orders, catalog, customers, coupons, settings, platform |
 
 Demo staff (password `password`): `admin@myoils.test` (super-admin) and `manager@myoils.test`
-(manager of Auto and Industrie). Demo customer: `jan@example.test` / `password` in Auto and Industrie.
+(manager of Auto and Industrie). Demo customers: 5 per shop, e.g. `jan@example.test` / `password` in Auto and
+Industrie (full list in docs/MANUAL-TESTING.md, section 11). Each shop has about 15 products and orders in every status.
 Coupons: `WELCOME10`, `FIVEOFF`. Payments use the local fake provider (no money is moved).
 
 Useful endpoints: `GET /api/store` on a shop host returns the store's name and branding.

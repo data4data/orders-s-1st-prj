@@ -112,7 +112,7 @@ Everything in [pages.html → UI standards / Error handling](diagrams/pages.html
 3. Done: Admin → Customers (list with orders and amount spent, detail with addresses and orders) with the **Contact messages** tab (unread badge, mark read, reply by email); Coupons (the screen promised earlier). Settings (managers/owners): Store profile & branding, Domains, Shipping methods, Payment gateway, Staff & roles (only owners appoint owners, a shop keeps one owner), Email notifications (switches honoured by the order and contact emails). Platform (super-admins): Stores (create, switch off), Countries & VAT rates (overlap check through the domain rate table) and tax categories, Staff users, System (queues, failed jobs with retry/delete, recent webhooks).
 4. Done: **tests:** content pages and contact form (validation, honeypot, rate limit, notification), admin customers/messages/coupons, every settings rule and platform action; browser tests for landing → oil finder, contact form, FAQ/SDS, and a branding change seen in the shop.
 
-## Phase 8 — Fixtures & demo data
+## Phase 8 — Fixtures & demo data — **Done** (branch `feature/demo-data`)
 
 Three **MyOil's** shops in **one country (NL, EUR)** in the shared database (fictional demo brand):
 
@@ -126,7 +126,13 @@ Per shop: a 3–4 level category tree, about 15 products with pack-size variants
 spec attributes, SDS and TDS document links, 2 shipping methods, 1–2 coupons, about 5 customers (B2C and B2B, each with billing and delivery
 addresses), and about 10 orders spread across **every** workflow place (with matching payments and history).
 Platform data: NL VAT with history (standard 21%; reduced 6% until 2018-12-31, then 9% from 2019-01-01), a super-admin, and a
-manager who is a member of Auto and Industrie only. Built with Foundry factories and loaded through `TenantContext::runAsPlatform()`.
+manager who is a member of Auto and Industrie only. Built with Foundry factories and loaded through `TenantContext::runAsStore()` per shop.
+
+Done: `DemoCatalogExtras` (15 products per shop in 3-level trees, on top of the test catalogs), 5 customers per shop, and
+`DemoOrderBuilder`, which places the orders through the real services (OrderPricer, `checkout`, PaymentStarter, OrderTransitions
+with gateway refunds) and then spreads their dates over three weeks; demo order emails are suppressed. `MainStoryTest` checks the
+promises (ranges, every workflow place, stock = pending reservations, payments and refunds match). Test suite: DAMA doctrine
+test bundle (one schema per run, a rolled-back transaction per test): 215 tests in about 2 minutes instead of 19 on CI.
 
 ## Phase 9 — Hardening & docs
 
