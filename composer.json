@@ -14,6 +14,8 @@
         "doctrine/doctrine-migrations-bundle": "^4.0.1",
         "doctrine/orm": "^3.7.1",
         "pentatrion/vite-bundle": "^8.2.4",
+        "phpdocumentor/type-resolver": "^2.0",
+        "phpstan/phpdoc-parser": "^2.3.5",
         "symfony/asset": "7.4.*",
         "symfony/console": "7.4.*",
         "symfony/doctrine-messenger": "7.4.*",
@@ -79,6 +81,12 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
+        ],
+        "demo:reset": [
+            "@php bin/console doctrine:database:drop --force --if-exists",
+            "@php bin/console doctrine:database:create",
+            "@php bin/console doctrine:migrations:migrate -n",
+            "@php bin/console foundry:load-fixtures main --append -n"
         ]
     },
     "conflict": {
@@ -105,5 +113,8 @@
         "symfony/maker-bundle": "^1.68",
         "symfony/web-profiler-bundle": "7.4.*",
         "zenstruck/foundry": "^2.13"
+    },
+    "scripts-descriptions": {
+        "demo:reset": "Recreate the dev database from the migrations and load the MyOil's demo data"
     }
 }

@@ -74,3 +74,9 @@ adding the date and reason. Don't silently diverge in code.
 | 65 | Browser tests | **Playwright** with the installed Chrome against PHP's built-in server (`*.shop.test` mapped in Chrome); local for now, CI in Phase 9 | No browser download; independent of Herd |
 | 66 | Maintenance mode | `bin/console app:maintenance on|off` (flag file, branded 503 with Retry-After) | Simple, no deployment tooling needed yet |
 | 67 | Dependency licences | New dependencies must be MIT / BSD / ISC / Apache-2.0; check the licence before adding a package | PrimeVue 5 showed a licence can change between major versions |
+| 68 | Product documents | Stored as an **https URL** (like images), not uploaded files *(Phase 4)* | No file storage needed yet; uploads can replace the URL later |
+| 69 | Card price with filters | A product card shows the **cheapest pack that matches the active filters** (pack size, price range, stock), otherwise the cheapest pack | The price on the card is one the shopper can actually buy with those filters |
+| 70 | Price filter | Min/max price is compared with the **gross** price (incl. VAT), calculated in SQL from the store's current VAT rates | Shoppers see and type gross prices |
+| 71 | Admin edits | `product.version` optimistic lock: saving a stale form returns **409** and the "someone else changed this" dialog; SKU unique per store, stock never below reserved | Two staff members cannot overwrite each other silently |
+| 72 | Demo reset | `composer demo:reset` (drop, create, migrate, load fixtures with `--append`); migrations run **non-transactional** (`transactional: false`) because MySQL commits DDL implicitly | Foundry's migrate mode failed on MySQL savepoints; one command gives a clean demo |
+| 73 | Payload types | `phpstan/phpdoc-parser` and `phpdocumentor/type-resolver` are **runtime** dependencies (MIT) | Symfony's serializer needs them to read `list<VariantInput>` docblocks when mapping nested JSON payloads |

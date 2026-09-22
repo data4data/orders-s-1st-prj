@@ -140,6 +140,10 @@ The mapping lives in one PHP enum (`OrderState`) with `label()` and `badge()` me
 - VAT rates are **platform-wide** in `tax_rate(country, tax_category, rate, valid_from, valid_to)`,
   so rate changes over time are just new rows. The **store's country** decides the rate, behind
   `TaxRateResolverInterface`, so a destination-based resolver can be added later.
+- The catalog reads the rates through `DoctrineTaxRateTableProvider` (one query per request) and shows
+  gross large, net small and the price per litre (`CatalogPricing`). The storefront price filter and
+  sorting compare **gross** prices in SQL; each product card shows the cheapest pack that matches the
+  active filters.
 - At checkout, order lines **snapshot** SKU, names, net unit price, VAT rate, and line net, tax and
   gross, and orders snapshot addresses. History never changes.
 

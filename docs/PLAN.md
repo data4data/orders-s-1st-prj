@@ -46,7 +46,7 @@ All in `src/Domain`, plain PHP (+ `brick/math` for exact decimals), no Symfony o
 
 1. Done: `Money\Money` (integer cents + currency, exact arithmetic, loss-free `allocate()`), `Shared\Percentage` (`DECIMAL(5,2)` string, never a float), `Shared\Quantity`.
 2. Done: `Pricing\LinePricer` (net → discount → VAT rounded half-up **per line** → gross), `Pricing\OrderTotals` (items, discount, shipping, net / VAT / gross), `Pricing\UnitPrice::perLitre()`.
-3. Done: `Tax\TaxRate`, `Tax\TaxRatePeriod` + `Tax\TaxRateTable` (validity dates, overlapping periods rejected), `TaxRateResolverInterface` + `StoreCountryTaxRateResolver` (store country decides; `TaxContext` already carries the destination country for a later OSS rule). The DB-backed `TaxRateTableProviderInterface` follows in Phase 4.
+3. Done: `Tax\TaxRate`, `Tax\TaxRatePeriod` + `Tax\TaxRateTable` (validity dates, overlapping periods rejected), `TaxRateResolverInterface` + `StoreCountryTaxRateResolver` (store country decides; `TaxContext` already carries the destination country for a later OSS rule). The DB-backed `TaxRateTableProviderInterface` followed in Phase 4 (`DoctrineTaxRateTableProvider`).
 4. Done: `Discount\DiscountRuleInterface`, `AbstractCouponRule` (eligibility, cap, fair split over lines) with `CouponPercentageRule` and `CouponFixedAmountRule`, `DiscountCalculator` (tagged rules, each applied to what is left). Rejections carry a reason (`inactive`, `expired`, `below_minimum_order`…) for the UI.
 5. Done: `Inventory\StockLevel` (`reserve` / `commit` / `release` / `restock`, `isLow(threshold)`), `Inventory\StockPolicy` (whole-cart check, same SKU counted once).
 6. Done: `Shipping\ShippingCalculatorInterface` + `AbstractShippingCalculator` with `FlatRateCalculator`, `WeightBasedCalculator`, `FreeOverThresholdCalculator`; `ShippingQuoter` (allowed countries + calculator by code, tagged).
@@ -73,13 +73,15 @@ Everything in [pages.html → UI standards / Error handling](diagrams/pages.html
 14. Done (moved forward from Phase 5): **staff login page** (Twig + Bootstrap, CSRF, throttling) and the **admin SPA shell**: sidebar navigation (Settings, Platform for super-admins), store switcher with the read-only "All stores" view, user menu with logout, in-app 404, placeholder pages for later phases.
 15. Done: **maintenance mode** (`bin/console app:maintenance on|off`, branded 503).
 
-## Phase 4 — Catalog
+## Phase 4 — Catalog — **Done** (branch `feature/catalog`)
 
-1. Entities: `TaxCategory`, `TaxRate` (`DECIMAL(5,2)` + validity), `Category` (tree), `Product`, `ProductVariant`, `ProductImage` (URL), `Attribute`, `AttributeOption`, `ProductAttributeValue`, `ProductDocument`, plus migrations.
-2. Repositories behind Application ports. Doctrine tax-rate adapter.
-3. Storefront JSON API: category tree, product list with attribute filters and pagination, product detail with variants, gross + net prices, and price per litre.
-4. Vue storefront islands: `Catalog` (filters, chips, sort, grid/list) and `Product` (pack-size selector, gallery, tabs, documents), as in the sketches.
-5. Admin SPA: Products (General, Pack sizes & stock, Specs, Images, Documents), Categories (tree), Attributes.
+1. Done: entities `TaxCategory`, `TaxRate` (`DECIMAL(5,2)` + validity), `Category` (tree, no cycles), `Product` (optimistic lock `version`), `ProductVariant` (SKU unique per store, stock `on_hand`/`reserved`), `ProductImage` (URL), `Attribute`, `AttributeOption`, `ProductAttributeValue`, `ProductDocument` (URL), plus the migration.
+2. Done: repositories behind Application ports; `DoctrineTaxRateTableProvider` feeds the pure-PHP VAT table; `DoctrineProductSearch` filters by category (incl. sub-categories), search text, attribute options, pack sizes, stock and **gross** price range, with facet counts.
+3. Done: storefront JSON API `GET /api/categories`, `GET /api/products`, `GET /api/products/{slug}`: gross + net prices, VAT rate, price per litre, stock badges; the cheapest pack that matches the filters is shown on each card.
+4. Done: Vue storefront islands `Catalog` (`/catalog`, `/c/{slug}`, `/search`: filters in the address, chips, sort, grid/list, pagination, mobile drawer) and `Product` (`/p/{slug}`: pack-size selector, gallery, tabs, documents, related products). The header shows the top-level categories.
+5. Done: admin SPA under `/api/admin/catalog`: Products (General, Pack sizes & stock, Specifications, Images, Documents; per-tab error counts, 409 on a stale version), Categories (tree), Attributes (options). Delete rules: a category with products or sub-categories, and an attribute in use, cannot be deleted.
+6. Done: demo catalogs for the three shops (Auto 9, Industrie 5, Agri 4 products) and `composer demo:reset`.
+7. Done: **tests:** 142 PHP tests (storefront catalog API and pages, admin CRUD with nested validation paths, duplicate SKU/slug, stale version, delete rules, tenant isolation, VAT periods) and **20 Playwright browser tests** (filters in the address, pack selector prices, admin price edit shown in the shop).
 
 ## Phase 5 — Customers, cart, checkout & payment port
 

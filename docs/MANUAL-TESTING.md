@@ -3,7 +3,7 @@
 What you can open and click today, and what you should see. This file is updated at the end of
 every phase; sections for features that don't exist yet are listed at the bottom.
 
-**Last updated:** Phase 3 (UI foundation), 2026-09-22.
+**Last updated:** Phase 4 (Catalog), 2026-09-22.
 
 ## Before you start
 
@@ -13,10 +13,10 @@ every phase; sections for features that don't exist yet are listed at the bottom
 2. Docker is running: `docker compose up -d --wait` (MySQL + Mailpit).
 3. The database has the demo data, and the frontend is built:
    ```bash
-   php bin/console doctrine:migrations:migrate -n
-   php bin/console foundry:load-fixtures main -n
+   composer demo:reset    # drops the database, runs the migrations and loads the demo data
    npm run build          # or keep `npm run dev` running while you work
    ```
+   Run `composer demo:reset` again whenever you want the original demo data back (for example after editing products).
 
 Demo staff logins (password for both: `password`):
 
@@ -216,15 +216,57 @@ Real errors in development show Symfony's developer page instead; the `/_error/�
 
 ### Automated browser tests
 
-`npx playwright test` runs 16 browser checks of all of the above (uses your installed Chrome and PHP's built-in
+`npx playwright test` runs 20 browser checks (16 of the UI foundation, 4 of the catalog in section 7) of all of the above (uses your installed Chrome and PHP's built-in
 server, so it works even when Herd is not running).
+
+## 7. Catalog (Phase 4)
+
+### Storefront (MyOil's Auto)
+
+| Open | You should see |
+|---|---|
+| https://myoils-auto.shop.test | Header with the categories **Engine oil**, **Gear & ATF** and **Coolants** |
+| https://myoils-auto.shop.test/catalog | All 9 products, filters on the left, sort and grid/list switch at the top |
+| https://myoils-auto.shop.test/c/engine-oil | Breadcrumb *Home › Engine oil*, **6 products** (the sub-categories are included) |
+| Tick **SAE viscosity → 5W-30** | 3 products; a chip *5W-30* appears; the address now contains `f[sae_viscosity]=5W-30` (reload keeps the filter) |
+| Click the pack chip **208 L** | 1 product (*Synth Pro 5W-30*), its card shows the 208 L price |
+| Set price **Min 40 / Max 50** (incl. VAT) | Cards show the pack that falls in that range, e.g. Synth Pro *from €49.95* (the 5 L pack) |
+| Click **Clear all** | Back to 6 products |
+| https://myoils-auto.shop.test/search?q=G12-20 | Search by SKU finds *Coolant G12++* |
+| https://myoils-auto.shop.test/c/nothing | Branded 404 page |
+| Narrow the window to phone width | Filters move into a drawer (*Filters* button) |
+
+### Product page
+
+| Open | You should see |
+|---|---|
+| https://myoils-auto.shop.test/p/synth-pro-5w-30 | Gallery, four pack sizes (1 L, 5 L, 20 L, 208 L drum) |
+| Pick **5 L** | **€49.95** large, *€41.28 excl. VAT* small, *€9.99 per litre*, *In stock, ships today* |
+| Pick **208 L drum** | €1,489.00, *€7.16 per litre*, *Only … left* (low stock) |
+| Tab **Specifications** / **Documents** | SAE, specifications, OEM approvals / safety and technical data sheet links |
+| Click **Add to cart** | Toast *The cart arrives in phase 5.* |
+| https://myoils-industrie.shop.test/p/synth-pro-5w-30 | **404**: the product belongs to another shop |
+| https://myoils-industrie.shop.test/catalog | Industrial products only (Hydra HLP 46, …) |
+
+### Admin (log in as `manager@myoils.test`, pick **MyOil's Auto**)
+
+| Open | You should see |
+|---|---|
+| https://admin.shop.test/catalog/products | Product list with pack sizes, price range incl. VAT, available stock, *Low stock* tags; search by name or SKU |
+| Open **Coolant G12++**, tab **Pack sizes & stock** | Editable SKU, pack name, volume, weight, **net price** (gross is shown next to it), on hand, reserved |
+| Type `abc` as net price and **Save** | Red field *Enter an amount like 41.28 (net, without VAT).*, the tab shows an error count |
+| Enter `8.26` and **Save** | *Saved.*; the shop page shows **€9.99** |
+| Open the same product in two tabs, save in one, then save in the other | 409 dialog: someone else changed it, reload |
+| Change something, click another menu item | *Leave without saving?* |
+| https://admin.shop.test/catalog/categories | Category tree with product counts; deleting *Coolants* is refused (it still contains products) |
+| https://admin.shop.test/catalog/attributes | Attributes with their options; deleting *SAE viscosity* is refused (used by products) |
+| Without picking a store | *Pick a store* message instead of the catalog |
 
 ## Not testable yet
 
 | Feature | Arrives in |
 |---|---|
-| Catalog and product pages | Phase 4 |
 | Registration, login page, account, cart, checkout, fake payment | Phase 5 |
 | Order workflow buttons, admin dashboard | Phase 6 |
 | Landing, about, FAQ, contact pages | Phase 7 |
-| Full demo catalog, customers and orders | Phase 8 |
+| Bigger demo catalog, customers and orders | Phase 8 |

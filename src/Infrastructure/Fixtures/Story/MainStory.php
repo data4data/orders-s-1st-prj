@@ -6,6 +6,7 @@ namespace App\Infrastructure\Fixtures\Story;
 
 use App\Domain\Tenancy\StoreRole;
 use App\Entity\Store;
+use App\Infrastructure\Fixtures\CatalogBuilder;
 use App\Infrastructure\Fixtures\Factory\CountryFactory;
 use App\Infrastructure\Fixtures\Factory\StaffUserFactory;
 use App\Infrastructure\Fixtures\Factory\StoreDomainFactory;
@@ -15,19 +16,29 @@ use Zenstruck\Foundry\Attribute\AsFixture;
 use Zenstruck\Foundry\Story;
 
 /**
- * Demo data: three MyOil's shops in the Netherlands and two staff users (password: "password").
- * Catalog, customers and orders are added in Phase 8.
+ * Demo data: three MyOil's shops in the Netherlands with their catalogs (DemoCatalogs), Dutch VAT,
+ * and two staff users (password: "password"). Customers and orders are added in Phase 8.
  *
  * Load with: bin/console foundry:load-fixtures main
  */
 #[AsFixture(name: 'main')]
 final class MainStory extends Story
 {
+    public function __construct(private readonly CatalogBuilder $catalogBuilder)
+    {
+    }
+
     public function build(): void
     {
+        $taxCategories = $this->catalogBuilder->dutchVat(CountryFactory::netherlands());
+
         $auto = $this->shop('myoils-auto', "MyOil's Auto", 'AUTO', '#0F2742', '#F2A900');
         $industrie = $this->shop('myoils-industrie', "MyOil's Industrie", 'IND', '#2B2F36', '#F26B1D');
-        $this->shop('myoils-agri', "MyOil's Agri & Marine", 'AGRI', '#1E4D2B', '#F2C230');
+        $agri = $this->shop('myoils-agri', "MyOil's Agri & Marine", 'AGRI', '#1E4D2B', '#F2C230');
+
+        foreach (['myoils-auto' => $auto, 'myoils-industrie' => $industrie, 'myoils-agri' => $agri] as $code => $store) {
+            $this->catalogBuilder->build($store, $taxCategories['standard'], DemoCatalogs::all()[$code]);
+        }
 
         StaffUserFactory::new()->superAdmin()->create([
             'email' => 'admin@myoils.test',

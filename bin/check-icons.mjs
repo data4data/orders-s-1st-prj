@@ -11,9 +11,15 @@ const files = ['assets/bootstrap/lib/icons.js', 'assets/vue/shared/icons.js'];
 let failures = 0;
 for (const file of files) {
     const source = readFileSync(file, 'utf8');
+    const importBlock = (source.match(/import\s*\{([^}]*)\}\s*from\s*'lucide(?:-vue-next)?'/) ?? [])[1] ?? '';
+    const imported = new Set(importBlock.split(',').map((name) => name.trim()).filter(Boolean));
     for (const [semantic, lucide] of Object.entries(map)) {
         if (!new RegExp(`'${lucide}':\\s*${pascal(lucide)}\\b`).test(source)) {
             console.error(`FAIL ${file}: icon "${semantic}" (lucide "${lucide}") is not mapped`);
+            failures++;
+        }
+        if (!imported.has(pascal(lucide))) {
+            console.error(`FAIL ${file}: ${pascal(lucide)} (icon "${semantic}") is not imported`);
             failures++;
         }
     }
