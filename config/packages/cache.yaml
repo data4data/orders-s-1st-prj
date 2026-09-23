@@ -17,3 +17,12 @@ framework:
         # Namespaced pools use the above "app" backend by default
         #pools:
             #my.dedicated.cache: null
+
+# Tests: rate limits live in the database (cache_items), so they last across the requests of one
+# test (an array pool is emptied by every request) and start fresh with each test's database reset.
+when@test:
+    framework:
+        cache:
+            pools:
+                cache.rate_limiter:
+                    adapter: cache.adapter.doctrine_dbal

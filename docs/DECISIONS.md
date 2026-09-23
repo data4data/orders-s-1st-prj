@@ -32,7 +32,7 @@ adding the date and reason. Don't silently diverge in code.
 | 25 | Tooling | PHPUnit, PHPStan level 8, deptrac, PHP-CS-Fixer, ESLint + Prettier, GitHub Actions | Machine-checked architecture |
 | 26 | Tax rule detail | The store's country decides VAT, behind `TaxRateResolverInterface` | Simple now; destination-based rule can be added later |
 | 27 | Folder layout | **Layer-first**: `Domain / Entity / Application / Infrastructure / UI` | Readable boilerplate; simple deptrac rules |
-| 28 | PrimeVue styling | **Styled mode (Aura)** + `tailwindcss-primeui` | Officially recommended pairing; far less work than unstyled mode |
+| 28 | PrimeVue styling | **Styled mode (Aura)** + `tailwindcss-primeui` (PrimeVue **4.5.5**, see #62) | Officially recommended pairing; far less work than unstyled mode |
 | 29 | Admin location | Separate **`admin.shop.test`** host with a store switcher | One entry point for global staff |
 | 30 | No tenant | **Fail closed**: unknown host → 404; tenant queries without a store return nothing; `runAsPlatform()` to opt out | Safety first against data leaks |
 | 31 | Demo data | Three **MyOil's** shops in **one country (NL, EUR)**: Auto, Industrie, Agri & Marine *(changed 2026-09-21 from NL/DE/PL)* | One country for the demo, several shops |
@@ -62,3 +62,46 @@ adding the date and reason. Don't silently diverge in code.
 | 55 | Cancel vs refund | **Before shipping → `cancel`** (staff; the full refund is issued automatically first). **After shipping → `refund`** (from `shipped`/`delivered`, mainly after delivery). No overlap | One clear rule for staff and customers |
 | 56 | Entity location | **`src/Entity`** (`App\Entity`), the Symfony standard; its own deptrac layer (Application and Infrastructure may use it; it may use only Domain) | What Symfony docs and `make:entity` expect; least surprise |
 | 57 | Frontend language | Plain **JavaScript** (ES modules) with JSDoc types on the API layer; no TypeScript | Matches the spec ("pure JavaScript") |
+| 58 | VAT rounding | VAT is calculated **per line** and rounded **half-up** to cents; order VAT = sum of line VAT *(Phase 2, confirmed 2026-09-21)* | Matches what each order line snapshots; totals always add up |
+| 59 | Coupon calculation | Percentage coupons take the % of the **items net total** (before shipping); the discount is split over lines in proportion to their net (largest-remainder, never loses a cent) and taken off **before VAT** *(Phase 2, confirmed 2026-09-21)* | Each line's VAT is computed on its discounted net, as tax rules require |
+| 60 | Free-shipping threshold | Compared with the **order value incl. VAT after discount** ("free shipping over €100" as customers read it) *(Phase 2, confirmed 2026-09-21)* | Customers see gross prices |
+| 61 | Rounding for price per litre | pack price × 1000 / volume in ml, rounded half-up once *(Phase 2)* | Exact; e.g. €1,489.00 / 208 L = €7.16 |
+
+
+| 62 | PrimeVue version | **PrimeVue 4.5.5 + @primeuix/themes 2.0.3, pinned exactly** (MIT). PrimeVue 5 became commercial (license key; free Community License needs yearly renewal) *(2026-09-22)* | Free open source, no watermark; can move to 5 later with a licence |
+| 63 | CSRF tokens | **Session-based** tokens: forms use Symfony's form CSRF; the JSON API needs `X-CSRF-Token` (token id `api`); `GET /api/csrf-token` for a fresh one; 419 when missing or expired | Fits decision #22; the stateless mode needed a JS helper we don't use |
+| 64 | Staff login page | Built in **Phase 3** (Twig + Bootstrap, CSRF, 5 attempts / 15 min), together with the admin SPA shell | The admin shell needs it; customer login stays in Phase 5 |
+| 65 | Browser tests | **Playwright** with the installed Chrome against PHP's built-in server (`*.shop.test` mapped in Chrome); local for now, CI in Phase 9 | No browser download; independent of Herd |
+| 66 | Maintenance mode | `bin/console app:maintenance on|off` (flag file, branded 503 with Retry-After) | Simple, no deployment tooling needed yet |
+| 67 | Dependency licences | New dependencies must be MIT / BSD / ISC / Apache-2.0; check the licence before adding a package | PrimeVue 5 showed a licence can change between major versions |
+| 68 | Product documents | Stored as an **https URL** (like images), not uploaded files *(Phase 4)* | No file storage needed yet; uploads can replace the URL later |
+| 69 | Card price with filters | A product card shows the **cheapest pack that matches the active filters** (pack size, price range, stock), otherwise the cheapest pack | The price on the card is one the shopper can actually buy with those filters |
+| 70 | Price filter | Min/max price is compared with the **gross** price (incl. VAT), calculated in SQL from the store's current VAT rates | Shoppers see and type gross prices |
+| 71 | Admin edits | `product.version` optimistic lock: saving a stale form returns **409** and the "someone else changed this" dialog; SKU unique per store, stock never below reserved | Two staff members cannot overwrite each other silently |
+| 72 | Demo reset | `composer demo:reset` (drop, create, migrate, load fixtures with `--append`); migrations run **non-transactional** (`transactional: false`) because MySQL commits DDL implicitly | Foundry's migrate mode failed on MySQL savepoints; one command gives a clean demo |
+| 73 | Payload types | `phpstan/phpdoc-parser` and `phpdocumentor/type-resolver` are **runtime** dependencies (MIT) | Symfony's serializer needs them to read `list<VariantInput>` docblocks when mapping nested JSON payloads |
+| 74 | Cart storage | The cart is a **draft order**; its id lives in the session per shop. Guest carts are merged into the customer's cart on login | One model for cart and order, no second table |
+| 75 | Checkout pricing | Cart and `PlaceOrder` share `OrderPricer`; the wizard sends `expectedTotal` and the server refuses a changed total (422 on `cart`) | The customer never pays a different amount than shown |
+| 76 | Line prices | Line gross = VAT on the **line net** (decision #58), so 3 × €12.95 can show €38.84; the unit price is shown as "each" | Totals always match the order snapshot and invoices |
+| 77 | Password reset | Stateless link `<id>.<expires>.<hmac>` signed with the current password hash; one hour, single use; the same answer whether or not the email exists | No token table; no account enumeration |
+| 78 | Payment page (Phase 5) | FakeGateway page is a **signed URL** served by the shop; the webhook endpoint verifies signatures now, storing and processing events (capture → `pay`) comes in Phase 6, so orders stay *Awaiting payment* until then | Keeps the phase boundary of the plan |
+| 79 | Workflows | Order and payment state machines are configured in Phase 5 (PlaceOrder applies `checkout`); guards and `completed` listeners follow in Phase 6 | The handler already goes through the workflow |
+| 80 | Countries | Addresses may be in NL, BE, DE (rows in `country`); shipping methods list their allowed countries | Enough for the demo; VAT still follows the store country (decision #26) |
+| 81 | Transition rules | Guards call a pure `OrderTransitionPolicy`; non-staff only learn "staff only", staff learn what is missing (e.g. refund not complete) | Rules are unit-tested without Symfony; messages fit the audience |
+| 82 | Transition effects | One Application service, `OrderTransitions`, applies effects and transition together (stock, refunds); controllers, webhooks and the scheduler all use it | No path can change the state without its stock effect |
+| 83 | Cancel after payment | Staff only; the full refund is issued through the gateway inside the same action, then stock is restocked; a refused refund changes nothing | Decision #55 made concrete |
+| 84 | Webhook processing | Stored first (unique gateway + event id), processed by the async worker; the FakeGateway page delivers its webhook as an in-process sub-request | Idempotent; PHP's built-in server cannot call itself |
+| 85 | Payment retry | A new payment attempt per retry; an open attempt is reused | Keeps every attempt in the history |
+| 86 | Unpaid orders | Cancelled after 60 minutes by the scheduler (every 5 minutes) and on demand with `app:orders:expire` | Reserved stock never stays blocked |
+| 87 | Charts | `chart.js` 4.5.1 (MIT) through PrimeVue `Chart` | Licence rule #67 |
+| 88 | Admin configuration screens | Settings and Platform handlers use Doctrine directly (plain CRUD on configuration); business flows (cart, checkout, workflows) keep their ports | Less ceremony where there is no business rule to isolate |
+| 89 | Settings permissions | Settings need ROLE_STORE_MANAGER; only owners (or super-admins) add, remove or appoint owners; a shop always keeps one owner | Nobody locks a shop out by accident |
+| 90 | Email notifications | Per-store switches (order paid/shipped/cancelled/refunded, contact message), all on by default, stored as JSON on `store` | Simple, no extra table |
+| 91 | Contact form | AJAX with jQuery validation, honeypot field, 3 per 10 minutes per IP, email to the shop's contact address with Reply-To the sender | Low spam without a CAPTCHA |
+| 92 | Landing data | Featured = first in-stock products; oil finder uses the shop's first filterable attribute; shipping summary comes from the shipping methods | Works for every shop without extra settings; a real finder wizard comes later |
+| 93 | Test rate limits | In tests the limiter storage is `cache.adapter.doctrine_dbal`: kept across the requests of one test, reset with each test's database | An array pool is emptied by every request, a file pool leaks between tests |
+| 94 | Test database | `dama/doctrine-test-bundle` (MIT, dev): the schema is built once per run and every test runs in a rolled-back transaction; PHPUnit memory 512M | Rebuilding ~25 tables before every test had grown the CI run to 19 minutes |
+| 95 | Demo orders | Built through the application services (pricer, workflows, payment starter, OrderTransitions), then backdated with SQL; staff steps run as the demo manager (Agri: the super-admin) | Demo data obeys the same rules as real orders |
+| 96 | Demo side effects | Store emails are switched off while demo orders are built; demo orders awaiting payment are placed a few minutes before the reset, so the expiry job cancels them an hour later | No flood in Mailpit; the expiry job has something to show |
+| 97 | Test catalogs vs demo range | Tests use `DemoCatalogs` (stable counts); the demo story merges `DemoCatalogExtras` on top | More demo products never break assertions |
+| 98 | APP_SECRET | Per machine in `.env.local` (git-ignored), created by `composer app:secret`; `.env.dev` is no longer tracked. `.env.test` keeps its fixed non-secret value so tests and CI are reproducible | The Symfony installer had generated a dev secret into the committed `.env.dev`, which GitGuardian flagged in the public repository (2026-09-22). It signs CSRF tokens, signed payment URLs and reset links |

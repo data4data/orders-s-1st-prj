@@ -1,0 +1,307 @@
+# UI texts for Twig pages (decision #38: English first, every text through a key).
+# Client-side texts live in assets/shared/i18n/en.json.
+layout:
+    skip_to_content: Skip to content
+    other_shops: Other MyOil's shops
+    search_placeholder: Search products, SAE, specifications…
+    search: Search
+    account: My account
+    log_in: Log in
+    cart: Cart
+    contact_us: Contact us
+    footer:
+        about: About
+        faq: FAQ
+        contact: Contact
+        shipping_info: Shipping info
+        safety_data_sheets: Safety data sheets
+        terms: Terms
+        privacy: Privacy
+        rights: All prices include VAT unless stated otherwise.
+
+catalog:
+    title: All products
+
+errors:
+    reference: 'Reference: %code%'
+    back_home: Back to home
+    browse_catalog: Browse catalog
+    try_again: Try again
+    log_in: Log in
+    generic_4xx:
+        title: This request could not be completed
+        text: Something about this request was not right. Go back and try again.
+    generic_5xx:
+        title: Something went wrong
+        text: We could not show this page. Please try again in a moment. If it keeps happening, contact us and mention the reference below.
+    '403':
+        title: No access
+        text: You do not have permission to open this page.
+    '404':
+        title: We can't find this page
+        text: It may have moved, or the link is wrong. Try searching or go back to the shop.
+    '419':
+        title: Your session expired
+        text: For your security, the page was open too long. Reload it and try again; what you typed is kept where possible.
+    '429':
+        title: Too many attempts
+        text: Please wait before trying again.
+        countdown: 'You can try again in <span data-countdown="%seconds%">%seconds%</span> s.'
+    '500':
+        title: Something went wrong
+        text: This is our fault, not yours. Please try again in a moment. If it keeps happening, contact us and mention the reference below.
+    '503':
+        title: We'll be right back
+        text: The shop is being updated. Please try again in a few minutes.
+    store_not_found:
+        title: Store not found
+        text: There is no shop at this address. Check the address, or visit one of our shops.
+
+admin:
+    title: Admin
+    login:
+        title: Log in to the admin
+        email: Email
+        password: Password
+        submit: Log in
+        invalid: The email or password is not correct.
+
+ui_kit:
+    title: UI kit
+    intro: Every UI standard from docs/diagrams/pages.html, working. Development only.
+    form:
+        name: Name
+        email: Email
+        postcode: Postcode
+        postcode_help: Dutch format, e.g. 1012 AB
+        message: Message
+        send: Send
+        send_without_checks: Send without browser checks
+        sent: Thanks, your message was sent.
+
+login:
+    title: Log in
+    submit: Log in
+    forgot: Forgot your password?
+    no_account: New here?
+    register: Create an account
+
+register:
+    title: Create your account
+    intro: Save your addresses, follow your orders and check out faster.
+    account: Your details
+    email: Email
+    password: Password
+    password_help: At least 8 characters.
+    billing: Billing address
+    delivery: Delivery address
+    delivery_same: Deliver to the billing address
+    accept_terms: I accept the terms and conditions
+    submit: Create account
+    have_account: Already have an account?
+    welcome: Welcome! Your account is ready.
+
+address:
+    first_name: First name
+    last_name: Last name
+    company: Company
+    vat_id: VAT number
+    vat_id_help: For business customers, e.g. NL123456789B01.
+    street: Street
+    house_number: House number
+    postcode: Postcode
+    city: City
+    country: Country
+    phone: Phone
+    business: Ordering for a business?
+
+password_reset:
+    title: Forgot your password?
+    intro: Enter your email address and we will send you a link to choose a new password.
+    send: Send reset link
+    back: Back to log in
+    sent: If an account exists for this address, we have sent a reset link. Check your inbox.
+    new_title: Choose a new password
+    new_password: New password
+    repeat_password: Repeat new password
+    save: Save password
+    done: Your password has been changed.
+    expired: This link has expired or was already used.
+    request_new: Request a new link
+
+email:
+    password_reset:
+        greeting: Hello %name%,
+        intro: 'You asked to reset your password for %store%. Click the link below to choose a new one:'
+        button: Choose a new password
+        expiry: The link works for one hour and only once.
+        ignore: If you did not ask for this, you can ignore this email.
+    order:
+        pay: We received your payment for order %number%. We are preparing it now.
+        ship: Good news, order %number% has left our warehouse.
+        cancel: Order %number% has been cancelled. If you already paid, the full amount is refunded to you.
+        refund: We refunded order %number% in full.
+        total: Total incl. VAT
+        view: View your order
+
+fake_gateway:
+    title: Test payment
+    notice: This is the local test payment provider. No money is moved.
+    order: Order %number%
+    amount: Amount to pay
+    pay: Pay now
+    fail: Simulate a failed payment
+    back: Back to the shop
+    invalid: This payment link is invalid or has expired.
+
+cart:
+    title: Your cart
+checkout:
+    title: Checkout
+account:
+    title: My account
+order:
+    confirmation_title: Order confirmation
+
+content:
+    from: from %price%
+    price: '%price%'
+    incl_vat: incl. VAT
+    per_litre: '%price% per L'
+    legal_notice: Demo text. A real shop replaces this page with its own legal text.
+    home:
+        title: Lubricants for every engine
+        hero_title: The right oil for every engine
+        hero_text: OEM-approved lubricants, shipped from the Netherlands within 24 hours.
+        find_oil: Find the right oil
+        business: Business customer?
+        usp:
+            approvals: OEM approvals on every product
+            delivery: Ordered before 17:00, shipped today
+            business: Business pricing with your VAT number
+            sds: A safety data sheet for every product
+        categories: Shop by category
+        product_count: '{0}No products yet|{1}1 product|]1,Inf[%count% products'
+        featured: Featured products
+        all_products: All products
+        finder_title: Not sure which oil?
+        finder_text: 'Pick the %attribute% your manual asks for and we show every matching product. A step-by-step oil finder follows later.'
+        finder_submit: Show matching products
+        b2b_title: Workshop or fleet?
+        b2b_text: Order with your company details and VAT number, and ask us about volume prices and drums.
+        b2b_button: Contact sales
+    about:
+        title: About us
+        lead: '%store% is part of MyOil''s, a Dutch family business supplying lubricants since 1998.'
+        p1: We stock engine, gear, hydraulic and industrial oils from our own warehouse near Utrecht, so most orders leave the same day.
+        p2: Every product comes with its technical and safety data sheet, and our specialists help you choose the right specification.
+        other_shops: Our other shops
+        card:
+            warehouse_title: Own warehouse
+            warehouse: Over 2,000 pack sizes in stock, from 1 litre to 1,000 litre IBC.
+            approvals_title: Approved quality
+            approvals: Products tested against ACEA, API and OEM specifications.
+            support_title: Specialist advice
+            support: Call or write us on working days from 8:00 to 17:30.
+    faq:
+        title: Frequently asked questions
+        more: Your question is not listed?
+        contact: Send us a message.
+        group:
+            ordering: Ordering
+            delivery: Delivery
+            products: Products
+            payment: Payment
+        ordering:
+            account:
+                q: Do I need an account to order?
+                a: No. You can check out as a guest. With an account you save your addresses and see all your orders.
+            vat:
+                q: Can I order with my company details?
+                a: Yes. Enter your company name and VAT number in the billing address; they appear on your invoice.
+            change:
+                q: Can I change an order after placing it?
+                a: Until it is shipped we can cancel it for you and refund the full amount. Contact us with your order number.
+        delivery:
+            when:
+                q: When will my order arrive?
+                a: Orders placed before 17:00 on working days leave the same day. PostNL Standard usually delivers the next working day.
+            countries:
+                q: Which countries do you deliver to?
+                a: The Netherlands, Belgium and Germany. See the shipping info page for prices per country.
+            free:
+                q: When is shipping free?
+                a: PostNL Standard is free from €100 incl. VAT, after discounts.
+        products:
+            which:
+                q: Which oil does my car need?
+                a: Your owner's manual lists the viscosity (e.g. 5W-30) and the specification or approval (e.g. VW 504.00). Filter the catalog on both.
+            sds:
+                q: Where do I find safety data sheets?
+                a: On the Documents tab of each product, and all together on the safety data sheets page.
+            drums:
+                q: Do you sell drums and IBCs?
+                a: 'Yes, many oils come in 20 L, 60 L and 208 L. Drums ship by pallet delivery at %store%.'
+        payment:
+            methods:
+                q: How can I pay?
+                a: You pay on the secure page of our payment provider right after checkout.
+            failed:
+                q: My payment failed. What now?
+                a: Nothing was charged. Open your order confirmation and click "Try the payment again".
+            refund:
+                q: How long does a refund take?
+                a: We send the refund the moment we cancel or refund the order; your bank usually shows it within a few days.
+    contact:
+        title: Contact us
+        name: Name
+        email: Email
+        subject: Subject
+        subjects:
+            order: A question about my order
+            product: Product advice
+            business: Business account and volume prices
+            other: Something else
+        order_number: Order number (optional)
+        order_pattern: An order number looks like AUTO-000123.
+        message: Message
+        send: Send message
+        sent: Thank you. We have received your message and answer within one working day.
+        hours: Working days 8:00 to 17:30.
+    shipping:
+        title: Shipping information
+        lead: All prices include VAT. Orders placed before 17:00 on working days leave the same day.
+        method: Method
+        price: Price
+        countries: Countries
+        free_from: Free from %amount%
+        by_weight: Price by weight
+        up_to: up to %kg% kg
+        heavier: heavier
+        vat_note: Shipping is charged with the standard VAT rate, like the products.
+    sds:
+        title: Safety data sheets
+        lead: Safety data sheets (SDS) of all our products. Also available on the Documents tab of each product.
+        filter: Filter by product
+        empty: No safety data sheets yet.
+        no_match: No product matches this filter.
+    terms:
+        title: Terms and conditions
+        s1_title: 1. Who we are
+        s1: '%store% is a trading name of MyOil''s B.V., registered in the Netherlands.'
+        s2_title: 2. Prices and payment
+        s2: Prices include VAT unless stated otherwise. You pay right after placing the order; the order is binding once paid.
+        s3_title: 3. Delivery
+        s3: We deliver to the address you entered. Delivery times are estimates.
+        s4_title: 4. Cancellation and returns
+        s4: 'Until shipping we can cancel an order and refund it in full. Contact us at %email% for returns.'
+    privacy:
+        title: Privacy statement
+        s1_title: 1. What we collect
+        s1: Your name, email, addresses and orders, and the messages you send us.
+        s2_title: 2. Why
+        s2: To deliver your orders, send order emails and answer your questions. We do not sell your data.
+        s3_title: 3. How long
+        s3: Orders are kept as long as the law requires for bookkeeping; accounts until you ask us to remove them.
+        s4_title: 4. Your rights
+        s4: 'Ask %store% at %email% to see, correct or delete your data.'

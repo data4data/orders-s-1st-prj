@@ -17,7 +17,7 @@ A multi-store e-commerce platform for lubricants (engine, industrial and agricul
 | Messaging | Symfony Messenger: sync `command.bus` / `query.bus`, async Doctrine transport for emails and webhooks |
 | Order lifecycle | Symfony Workflow (`state_machine`) for orders and payments |
 | Server-rendered pages | Twig + Bootstrap 5.3 + jQuery 4 |
-| Interactive pages | Vue 3.5 + PrimeVue 5 (Aura theme) + Tailwind CSS 4 |
+| Interactive pages | Vue 3.5 + PrimeVue 4.5.5 (Aura theme, MIT; pinned) + Tailwind CSS 4 |
 | Icons | Lucide in both stacks; no emojis |
 | Asset build | Vite 8 via `pentatrion/vite-bundle`, with three isolated entries (dev server on port 5174) |
 | Local runtime | Laravel Herd (PHP, `*.shop.test` hosts) + Docker Compose (MySQL 8.4 on port 3307, Mailpit) |
@@ -127,6 +127,12 @@ The mapping lives in one PHP enum (`OrderState`) with `label()` and `badge()` me
   are done by the **handler** in the same transaction as `$workflow->apply()`.
 - Side effects (the `order_status_history` audit row, emails) run in `completed` listeners. Emails go
   through async Messenger.
+- `OrderTransitions` (Application) is the only way an order changes state: it checks the edge and the
+  guards, runs the effects (stock commit / release / restock, gateway refunds) and applies the
+  transition in the caller's transaction. Guards delegate to the pure `OrderTransitionPolicy`.
+- Webhooks: `/webhooks/payment/{gateway}` verifies the signature, stores `payment_webhook_event`
+  (unique per gateway and event id, so repeats are ignored), answers 202 and queues
+  `ProcessPaymentWebhook`; the worker applies the payment transition and, on capture, the order `pay`.
 - **Payments** have their own state machine: `pending → authorized → captured`, plus
   `failed`, `cancelled` and `refunded`. `payment.completed.capture` dispatches the order's `pay`
   transition.
@@ -140,6 +146,10 @@ The mapping lives in one PHP enum (`OrderState`) with `label()` and `badge()` me
 - VAT rates are **platform-wide** in `tax_rate(country, tax_category, rate, valid_from, valid_to)`,
   so rate changes over time are just new rows. The **store's country** decides the rate, behind
   `TaxRateResolverInterface`, so a destination-based resolver can be added later.
+- The catalog reads the rates through `DoctrineTaxRateTableProvider` (one query per request) and shows
+  gross large, net small and the price per litre (`CatalogPricing`). The storefront price filter and
+  sorting compare **gross** prices in SQL; each product card shows the cheapest pack that matches the
+  active filters.
 - At checkout, order lines **snapshot** SKU, names, net unit price, VAT rate, and line net, tax and
   gross, and orders snapshot addresses. History never changes.
 
@@ -154,6 +164,19 @@ The mapping lives in one PHP enum (`OrderState`) with `label()` and `badge()` me
 - One `customer_address` row can serve both roles (`usable_for_billing`, `usable_for_shipping`). The
   customer points to a default billing and a default delivery address.
 - **Guests** enter addresses at checkout only. They are snapshotted on the order and not kept.
+- Customers log in on their own shop (`main` firewall, entity provider on `customer` filtered by the
+  tenant filter, which is set from the host before the firewall runs). Password reset links are
+  stateless: signed with the current password hash, valid one hour and only once.
+
+### Cart and checkout
+
+- The **cart is a draft order** (`orders.state = draft`), remembered in the session per shop; a
+  logged-in customer uses their own draft, and a guest cart joins it on login.
+- `OrderPricer` prices the cart and the order being placed with the same code (Domain `LinePricer`,
+  `DiscountCalculator`, `ShippingQuoter`), so the checkout total is exactly what the cart showed.
+  The wizard sends `expectedTotal`; a different server total stops the order.
+- `PlaceOrder` runs in the command bus transaction: stock check (`StockPolicy`), `checkout`
+  transition, stock reservation, line / address / shipping snapshots, order number, payment session.
 
 ## 7. Extension points (SOLID)
 
@@ -170,6 +193,12 @@ existing is edited.
 
 Shared behaviour sits in base classes: `AbstractPaymentGateway` (signature checks, money conversion),
 `AbstractApiController` (JSON, validation, CSRF), and the Twig base layouts.
+
+### Admin configuration
+
+Settings (per store, managers and owners) and Platform (super-admins) are plain CRUD on
+configuration tables, so their handlers use Doctrine directly. Everything with business rules
+(cart, checkout, order and payment workflows, address book) goes through ports and the domain.
 
 ## 8. Frontend and style isolation
 
@@ -213,7 +242,8 @@ Isolation is enforced, not just agreed:
     Shipping methods, Payment gateway, Staff & roles, Email notifications.
   - *Platform* (super-admin only): Stores, Countries & VAT rates, Tax categories, Staff users, System.
 
-Page-by-page sketches are in [`docs/diagrams/pages.html`](docs/diagrams/pages.html).
+Page-by-page sketches are in [`docs/diagrams/pages.html`](docs/diagrams/pages.html). Every UI standard is
+demonstrated on the dev-only UI kit pages `/ui-kit` (Bootstrap) and `/ui-kit/vue` (Vue).
 
 ## 10. UI standards and error handling
 
@@ -227,7 +257,8 @@ Both stacks implement the same behaviour. There is one helper per stack, and the
 | Unsaved changes | Edit forms track "dirty" state. Leaving through in-app navigation opens the standard "Leave without saving?" dialog. Closing or reloading the tab uses the browser's native `beforeunload` prompt |
 | Icons | **No emojis anywhere.** One library, **Lucide** (SVG): `lucide-vue-next` in Vue, `symfony/ux-icons` (`ux_icon('lucide:…')`) in Twig. PrimeVue's own icons are replaced in our wrapper components. One semantic icon map is shared by both stacks |
 | Loading / empty | Skeletons for content, a spinner on the clicked button (disabled to prevent double submits), and empty states with one action |
-| API errors | Always RFC 7807 `application/problem+json`, with `violations[]` for field errors |
+| API errors | Always RFC 7807 `application/problem+json`, with `violations[]` for field errors (`ProblemJsonExceptionListener`); one shared client `assets/shared/http/api-client.js` does the automatic parts (419 retry, GET backoff, timeout, offline) and each stack reacts with its own toasts and dialogs |
+| CSRF | Forms: Symfony form CSRF. JSON API: `X-CSRF-Token` header (token id `api`, printed in `<meta name="csrf-token">`, fresh via `GET /api/csrf-token`); missing or expired → 419 |
 | Error handling | Every status has a defined reaction: 400, 401, 403, 404, 405, 409, 413, 419 (CSRF), 422, **429 with a `Retry-After` countdown**, 500 (with a reference code), 502, 503 and 504 (with retry and backoff), offline, timeout, and JS runtime errors. **Any other status** falls back to a generic 4xx or 5xx handling, so nothing goes unhandled |
 | Rate limiting | Symfony RateLimiter on login, registration, password reset, contact form, coupon apply, checkout, storefront and admin APIs. Webhooks are protected by signature instead |
 | Error pages | Branded Bootstrap pages: 404, 403, 419, 429, 500, 503, plus a neutral "store not found" page. Every response has an `X-Request-Id`, which is logged and shown as the reference code |

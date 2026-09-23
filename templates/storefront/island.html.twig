@@ -1,0 +1,9 @@
+{% extends 'vue/base.html.twig' %}
+
+{% block title %}{{ title_key|trans }}{% endblock %}
+
+{% block body %}
+    {# The account page needs the logout token (the firewall checks it). #}
+    {% set props = page == 'Account' ? props|merge({logoutToken: csrf_token('logout')}) : props %}
+    <div data-vue-page="{{ page }}" data-props="{{ props|json_encode }}"></div>
+{% endblock %}

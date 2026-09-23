@@ -1,0 +1,32 @@
+{% extends 'content/_page.html.twig' %}
+
+{% block title %}{{ 'content.shipping.title'|trans }}{% endblock %}
+{% block heading %}{{ 'content.shipping.title'|trans }}{% endblock %}
+
+{% block content %}
+    <p class="lead">{{ 'content.shipping.lead'|trans }}</p>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead><tr><th>{{ 'content.shipping.method'|trans }}</th><th>{{ 'content.shipping.price'|trans }}</th><th>{{ 'content.shipping.countries'|trans }}</th></tr></thead>
+            <tbody>
+                {% for method in methods %}
+                    <tr>
+                        <td><div class="fw-semibold">{{ method.name }}</div><div class="small text-body-secondary">{{ method.description }}</div></td>
+                        <td>
+                            {% if method.brackets is not empty %}
+                                <ul class="list-unstyled mb-0 small">
+                                    {% for bracket in method.brackets %}<li>{{ bracket.upToKg is null ? 'content.shipping.heavier'|trans : 'content.shipping.up_to'|trans({'%kg%': bracket.upToKg}) }}: {{ bracket.gross|money(layout.store.currencyCode) }}</li>{% endfor %}
+                                </ul>
+                            {% else %}
+                                {{ method.gross|money(layout.store.currencyCode) }}
+                                {% if method.freeFrom %}<div class="small text-success">{{ 'content.shipping.free_from'|trans({'%amount%': method.freeFrom|money(layout.store.currencyCode)}) }}</div>{% endif %}
+                            {% endif %}
+                        </td>
+                        <td>{{ method.countries|join(', ') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="small text-body-secondary">{{ 'content.shipping.vat_note'|trans }}</p>
+{% endblock %}

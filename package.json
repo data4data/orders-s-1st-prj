@@ -9,20 +9,25 @@
     "format": "prettier --write assets",
     "check:css-isolation": "node bin/check-css-isolation.mjs",
     "check:no-emoji": "node bin/check-no-emoji.mjs",
-    "check": "npm run lint && npm run check:no-emoji && npm run build && npm run check:css-isolation"
+    "check": "npm run lint && npm run check:no-emoji && npm run check:icons && npm run build && npm run check:css-isolation",
+    "check:icons": "node bin/check-icons.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@primeuix/themes": "^3.0.1",
+    "@primeuix/themes": "2.0.3",
     "bootstrap": "^5.3.8",
+    "chart.js": "4.5.1",
     "jquery": "^4.0.0",
+    "lucide": "^1.47.0",
     "lucide-vue-next": "^1.0.0",
-    "primevue": "^5.0.1",
+    "primevue": "4.5.5",
     "vue": "^3.5.43",
     "vue-i18n": "^11.4.12",
     "vue-router": "^5.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-vue": "^6.0.9",
     "eslint": "^9.39.5",

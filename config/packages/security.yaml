@@ -1,37 +1,87 @@
 security:
-    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        staff_users:
+            entity:
+                class: App\Entity\StaffUser
+                property: email
+        # Customers belong to one store: the tenant filter (set from the host before the firewall
+        # runs) limits the lookup to the current shop (decision #6).
+        customers:
+            entity:
+                class: App\Entity\Customer
+                property: email
+
+    role_hierarchy:
+        ROLE_SUPER_ADMIN: [ROLE_STAFF]
 
     firewalls:
         dev:
-            # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
+
+        # Admin on its own host (decision #29). Staff users are global; the store they work in
+        # comes from the store switcher (AdminTenantListener).
+        admin:
+            host: ^admin\.
+            lazy: true
+            provider: staff_users
+            entry_point: App\UI\Http\Security\AdminAuthenticationEntryPoint
+            form_login:
+                login_path: admin_login_page
+                check_path: admin_login_page
+                default_target_path: admin_app
+                enable_csrf: true
+            json_login:
+                check_path: admin_login
+            # 5 failed logins per 15 minutes per IP + email, then 429 (pages.html → Rate limits).
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
+            logout:
+                path: admin_logout
+                target: admin_login_page
+                enable_csrf: true
+                csrf_token_id: api
+                csrf_parameter: _csrf_token
+
+        # Storefront customers (Phase 5): Twig login form, 5 failed attempts per 15 minutes.
         main:
             lazy: true
-            provider: users_in_memory
+            provider: customers
+            entry_point: App\UI\Http\Security\CustomerAuthenticationEntryPoint
+            form_login:
+                login_path: customer_login
+                check_path: customer_login
+                default_target_path: account
+                enable_csrf: true
+                username_parameter: email
+                password_parameter: password
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
+            logout:
+                path: customer_logout
+                target: home
+                enable_csrf: true
+                csrf_token_id: logout
 
-            # Activate different ways to authenticate:
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
-
-    # Note: Only the *first* matching rule is applied
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/login$, host: ^admin\., roles: PUBLIC_ACCESS }
+        - { path: ^/api/admin/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/csrf-token$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/admin, roles: ROLE_STAFF }
+        - { path: ^/api/account, roles: ROLE_CUSTOMER }
+        - { path: ^/account, host: ^(?!admin\.), roles: ROLE_CUSTOMER }
+        # The admin SPA itself: every admin-host page that is not an API call, asset or file
+        # (files like /favicon.ico must never become the "return to" page after login).
+        - { path: ^/(?!api/|build/|_)[^.]*$, host: ^admin\., roles: ROLE_STAFF }
 
 when@test:
     security:
         password_hashers:
-            # Password hashers are resource-intensive by design to ensure security.
-            # In tests, it's safe to reduce their cost to improve performance.
             Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
                 algorithm: auto
                 cost: 4 # Lowest possible value for bcrypt

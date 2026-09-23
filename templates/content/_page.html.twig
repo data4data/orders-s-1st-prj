@@ -1,0 +1,8 @@
+{% extends 'bootstrap/base.html.twig' %}
+
+{% block body %}
+    <div class="container py-5" style="max-width: 860px">
+        <h1 class="h2 mb-4">{% block heading %}{% endblock %}</h1>
+        {% block content %}{% endblock %}
+    </div>
+{% endblock %}

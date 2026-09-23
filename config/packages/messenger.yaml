@@ -7,9 +7,12 @@ framework:
             # Commands change state. Handlers live in src/Application and run in one transaction.
             command.bus:
                 middleware:
+                    - App\Infrastructure\Tenancy\Messenger\TenantMiddleware
                     - doctrine_transaction
             # Queries only read.
-            query.bus: ~
+            query.bus:
+                middleware:
+                    - App\Infrastructure\Tenancy\Messenger\TenantMiddleware
 
         transports:
             # Emails, webhook processing and other background work (decision #23).
@@ -26,6 +29,7 @@ framework:
 
         routing:
             Symfony\Component\Mailer\Messenger\SendEmailMessage: async
+            App\Application\Payment\ProcessPaymentWebhook: async
 
 when@test:
     framework:

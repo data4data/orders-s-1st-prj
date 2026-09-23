@@ -1,0 +1,9 @@
+{# Storefront footer (Bootstrap). The Vue twin is assets/vue/storefront/StorefrontFooter.vue: keep both in sync. #}
+<footer class="shop-footer border-top mt-5">
+    <div class="container py-4 d-flex flex-wrap gap-3 small">
+        {% for key, path in {about: '/about', faq: '/faq', contact: '/contact', shipping_info: '/shipping-info', safety_data_sheets: '/safety-data-sheets', terms: '/terms', privacy: '/privacy'} %}
+            <a class="link-secondary text-decoration-none" href="{{ path }}">{{ ('layout.footer.' ~ key)|trans }}</a>
+        {% endfor %}
+        <span class="ms-auto text-body-secondary">&copy; {{ 'now'|date('Y') }} {{ layout.store.name }} · {{ 'layout.footer.rights'|trans }}</span>
+    </div>
+</footer>

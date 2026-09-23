@@ -3,8 +3,39 @@
  * project, so classes are generated only from the Vue code and the Vue Twig templates.
  * Bootstrap is never imported here (style isolation, decision #4).
  */
+@layer theme, base, primevue, components, utilities;
+
 @import 'tailwindcss' source(none);
 @import 'tailwindcss-primeui';
 
 @source '../vue';
 @source '../../templates/vue';
+
+/* Per-store accent colour (the primary palette comes through PrimeVue, see shared/primevue.js). */
+@theme inline {
+    --color-accent: var(--brand-accent);
+    --color-on-accent: var(--brand-on-accent);
+}
+
+/* Lucide icons. */
+.icon {
+    display: inline-block;
+    vertical-align: -0.125em;
+    flex-shrink: 0;
+}
+
+.icon-spin {
+    animation: icon-spin 1s linear infinite;
+}
+
+@keyframes icon-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Submit buttons pause while offline. */
+body.is-offline form [type='submit'] {
+    pointer-events: none;
+    opacity: 0.5;
+}

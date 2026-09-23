@@ -1,0 +1,32 @@
+{% extends 'bootstrap/base.html.twig' %}
+{% set layout = null %}
+
+{% block title %}{{ 'fake_gateway.title'|trans }}{% endblock %}
+{% block body_class %}bg-body-tertiary{% endblock %}
+
+{% block body %}
+    <div class="container py-5" style="max-width: 460px">
+        <div class="text-center mb-4">
+            <span class="fs-1 text-primary">{{ icon('lock') }}</span>
+            <h1 class="h4 mt-2">{{ 'fake_gateway.title'|trans }}</h1>
+            <p class="text-body-secondary small">{{ 'fake_gateway.notice'|trans }}</p>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                {% if valid %}
+                    <p class="mb-1 text-body-secondary">{{ 'fake_gateway.order'|trans({'%number%': order}) }}</p>
+                    <p class="mb-1">{{ 'fake_gateway.amount'|trans }}</p>
+                    <p class="display-6 fw-bold mb-4" data-testid="fake-amount">{{ amount|money(currency) }}</p>
+                    <form method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('fake_gateway') }}">
+                        <button class="btn btn-success w-100 mb-2" type="submit" name="outcome" value="pay" data-busy-on-submit>{{ 'fake_gateway.pay'|trans }}</button>
+                        <button class="btn btn-outline-danger w-100" type="submit" name="outcome" value="fail">{{ 'fake_gateway.fail'|trans }}</button>
+                    </form>
+                    <p class="text-center mt-3 mb-0"><a class="small" href="{{ return }}">{{ 'fake_gateway.back'|trans }}</a></p>
+                {% else %}
+                    <div class="alert alert-danger mb-0 d-flex gap-2" role="alert">{{ icon('error') }}<div>{{ 'fake_gateway.invalid'|trans }}</div></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
