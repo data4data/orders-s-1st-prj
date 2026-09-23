@@ -1,5 +1,55 @@
 # MyOil's — multi-store shop
 
+## What is this
+
+An online shop for oils and lubricants (car oils, industrial oils, greases, marine products).
+One application runs **three separate shops**, *MyOil's Auto*, *MyOil's Industrie* and *MyOil's Agri & Marine*.
+Each shop has its own web address, colours, products, customers and orders, and they all share one database.
+
+- **Customers** browse the catalog, put products in a cart, check out, pay (with a fake test payment) and see their orders.
+- **Staff** use one admin panel to manage orders, products, customers, coupons and shop settings.
+  A manager only sees the shops they are allowed to manage. The super-admin sees every shop.
+- **Orders** go through clear steps: awaiting payment, paid, being prepared, shipped, delivered, cancelled or refunded.
+
+## Start here: how the project was thought through
+
+If you only want to see how the project was planned, designed and documented, you don't need to run it.
+Open these pages in a browser (download the project, then double-click the file):
+
+1. [`docs/diagrams/architecture.html`](docs/diagrams/architecture.html): how the application is built and why
+2. [`docs/diagrams/db-schema.html`](docs/diagrams/db-schema.html): the database structure
+3. [`docs/diagrams/pages.html`](docs/diagrams/pages.html): every page and the UI standards
+
+The written plan and the decisions behind it are in [`docs/PLAN.md`](docs/PLAN.md) and [`docs/DECISIONS.md`](docs/DECISIONS.md).
+
+## Quick start
+
+You need [Laravel Herd](https://herd.laravel.com) (PHP 8.4, Composer, Node) and Docker running.
+
+```bash
+composer install && npm install
+composer app:secret              # creates your local secret key
+docker compose up -d --wait      # starts the database and a test mailbox
+herd link shop && herd secure shop
+composer demo:reset              # creates the database and fills it with demo shops, products and orders
+npm run build
+composer worker                  # leave this running in a second terminal
+```
+
+Then open:
+
+| What | URL | Login (password `password`) |
+|---|---|---|
+| Shop: MyOil's Auto | https://myoils-auto.shop.test | customer `jan@example.test` |
+| Shop: MyOil's Industrie | https://myoils-industrie.shop.test | customer `jan@example.test` |
+| Shop: MyOil's Agri & Marine | https://myoils-agri.shop.test | customer `pieter.kuipers@example.test` |
+| Admin panel | https://admin.shop.test | super-admin `admin@myoils.test`, or manager `manager@myoils.test` (Auto + Industrie only) |
+| Test mailbox (emails sent by the shops) | http://localhost:8025 | none |
+
+More detail is in the sections below and in [`docs/MANUAL-TESTING.md`](docs/MANUAL-TESTING.md).
+
+## Technical overview
+
 Multi-store e-commerce platform for lubricants on **Symfony 7.4 LTS / PHP 8.4** with a single shared
 MySQL database, a pure-PHP domain core, Symfony Workflow order lifecycle, and two isolated frontends
 (Twig + Bootstrap + jQuery, and Vue 3 + PrimeVue + Tailwind).
