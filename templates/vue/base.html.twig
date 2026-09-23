@@ -1,14 +1,24 @@
 {# Base layout for storefront Vue islands. Loads ONLY the "storefront" entry (no Bootstrap). #}
+{% set layout = layout ?? storefront_layout() %}
 <!DOCTYPE html>
 <html lang="{{ app.request.locale|default('en') }}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{% block title %}{% endblock %}</title>
+        {# Very early errors (e.g. maintenance mode) are rendered before the session exists. #}
+        {% if app.request.hasSession %}<meta name="csrf-token" content="{{ csrf_token('api') }}">{% endif %}
+        <title>{% block title %}{% endblock %}{% if layout %} · {{ layout.store.name }}{% endif %}</title>
+        <link rel="icon" href="{{ layout and layout.store.faviconUrl ? layout.store.faviconUrl : '/favicon.svg' }}">
+        {{ brand_style(layout ? layout.store.primaryColor : null, layout ? layout.store.accentColor : null) }}
         {% block stylesheets %}{{ vite_entry_link_tags('storefront') }}{% endblock %}
         {% block javascripts %}{{ vite_entry_script_tags('storefront') }}{% endblock %}
     </head>
-    <body>
-        {% block body %}{% endblock %}
+    <body class="flex min-h-screen flex-col bg-surface-0 text-surface-900">
+        {% if layout %}<div data-vue-layout="StorefrontHeader" data-props="{{ {layout: layout, scheme: app.request.scheme}|json_encode }}"></div>{% endif %}
+        <main id="main" class="grow">{% block body %}{% endblock %}</main>
+        {% if layout %}<div data-vue-layout="StorefrontFooter" data-props="{{ {layout: layout}|json_encode }}"></div>{% endif %}
+        {% set flashes = [] %}
+        {% for type, messages in app.flashes %}{% for message in messages %}{% set flashes = flashes|merge([{type: type, text: message|trans}]) %}{% endfor %}{% endfor %}
+        <div data-vue-system data-props="{{ {flashes: flashes}|json_encode }}"></div>
     </body>
 </html>

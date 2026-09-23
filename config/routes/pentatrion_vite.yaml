@@ -2,3 +2,9 @@ when@dev:
     _pentatrion_vite:
         prefix: /build
         resource: "@PentatrionViteBundle/Resources/config/routing.yaml"
+
+    # Vite panel of the web profiler (missing from the Phase 0 install: the debug toolbar failed to load).
+    _profiler_vite:
+        path: /_profiler/vite
+        defaults:
+            _controller: Pentatrion\ViteBundle\Controller\ProfilerController::info

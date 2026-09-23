@@ -1,3 +1,207 @@
 // Bootstrap entry styles. Tailwind is never imported here (style isolation, decision #4).
-// Per-store brand colours arrive as CSS variables from the base layout and are mapped in Phase 3.
 @use 'bootstrap/scss/bootstrap';
+
+// Per-store branding (decision #43): the base layout prints --brand-* variables for the store;
+// Bootstrap's own primary colour and components are pointed at them here.
+:root {
+    --bs-primary: var(--brand-primary);
+    --bs-primary-rgb: var(--brand-primary-rgb);
+    --bs-primary-text-emphasis: var(--brand-primary-800);
+    --bs-primary-bg-subtle: var(--brand-primary-50);
+    --bs-primary-border-subtle: var(--brand-primary-200);
+    --bs-link-color: var(--brand-primary-700);
+    --bs-link-color-rgb: var(--brand-primary-rgb);
+    --bs-link-hover-color: var(--brand-primary-900);
+    --bs-focus-ring-color: rgba(var(--brand-primary-rgb), 0.25);
+}
+
+.btn-primary {
+    --bs-btn-color: var(--brand-on-primary);
+    --bs-btn-bg: var(--brand-primary);
+    --bs-btn-border-color: var(--brand-primary);
+    --bs-btn-hover-color: var(--brand-on-primary);
+    --bs-btn-hover-bg: var(--brand-primary-600);
+    --bs-btn-hover-border-color: var(--brand-primary-600);
+    --bs-btn-active-color: var(--brand-on-primary);
+    --bs-btn-active-bg: var(--brand-primary-700);
+    --bs-btn-active-border-color: var(--brand-primary-700);
+    --bs-btn-disabled-color: var(--brand-on-primary);
+    --bs-btn-disabled-bg: var(--brand-primary);
+    --bs-btn-disabled-border-color: var(--brand-primary);
+    --bs-btn-focus-shadow-rgb: var(--brand-primary-rgb);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--brand-primary);
+    --bs-btn-border-color: var(--brand-primary);
+    --bs-btn-hover-color: var(--brand-on-primary);
+    --bs-btn-hover-bg: var(--brand-primary);
+    --bs-btn-hover-border-color: var(--brand-primary);
+    --bs-btn-active-color: var(--brand-on-primary);
+    --bs-btn-active-bg: var(--brand-primary-700);
+    --bs-btn-active-border-color: var(--brand-primary-700);
+    --bs-btn-focus-shadow-rgb: var(--brand-primary-rgb);
+}
+
+.btn-accent {
+    --bs-btn-color: var(--brand-on-accent);
+    --bs-btn-bg: var(--brand-accent);
+    --bs-btn-border-color: var(--brand-accent);
+    --bs-btn-hover-color: var(--brand-on-accent);
+    --bs-btn-hover-bg: var(--brand-accent-600);
+    --bs-btn-hover-border-color: var(--brand-accent-600);
+}
+
+.bg-accent {
+    background-color: var(--brand-accent) !important;
+    color: var(--brand-on-accent) !important;
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+    border-color: var(--brand-primary-300);
+    box-shadow: 0 0 0 0.25rem rgba(var(--brand-primary-rgb), 0.25);
+}
+
+.form-check-input:checked,
+.nav-pills .nav-link.active,
+.dropdown-item:active,
+.page-item.active .page-link {
+    background-color: var(--brand-primary);
+    border-color: var(--brand-primary);
+    color: var(--brand-on-primary);
+}
+
+// Required fields are marked with * (Symfony adds .required to their labels).
+.form-label.required::after {
+    content: ' *';
+    color: var(--bs-danger);
+}
+
+// Lucide icons.
+.icon {
+    vertical-align: -0.125em;
+    flex-shrink: 0;
+}
+
+.icon-spin {
+    animation: icon-spin 1s linear infinite;
+}
+
+@keyframes icon-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Storefront header.
+.shop-topbar {
+    background: var(--brand-primary);
+    color: var(--brand-on-primary);
+}
+
+.shop-brand {
+    color: var(--brand-primary);
+    font-weight: 800;
+}
+
+.shop-brand-icon {
+    color: var(--brand-accent);
+}
+
+// Toasts: top-right, top-centre on phones.
+.toast-stack {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1090;
+    width: min(360px, calc(100vw - 2rem));
+    display: grid;
+    gap: 0.5rem;
+}
+
+@media (max-width: 575.98px) {
+    .toast-stack {
+        left: 1rem;
+        right: 1rem;
+        width: auto;
+    }
+}
+
+.app-toast {
+    width: 100%;
+    border-left: 5px solid var(--bs-info);
+    box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.1);
+}
+
+.app-toast__icon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+@each $level, $color in (success: var(--bs-success), info: var(--bs-info), warning: var(--bs-warning), error: var(--bs-danger)) {
+    .app-toast--#{$level} {
+        border-left-color: $color;
+
+        .app-toast__icon {
+            color: $color;
+        }
+    }
+}
+
+// Offline banner; submit buttons pause while offline.
+.offline-banner {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 1095;
+    padding: 0.6rem 1rem;
+    background: var(--bs-warning);
+    color: var(--bs-dark);
+    text-align: center;
+    font-weight: 600;
+}
+
+body.is-offline form [type='submit'] {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+// Landing page (Phase 7).
+.shop-hero {
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-700));
+    color: var(--brand-on-primary);
+}
+
+.shop-hero-usps {
+    font-weight: 600;
+
+    .icon {
+        color: var(--brand-accent);
+    }
+}
+
+
+.shop-b2b {
+    background: var(--brand-primary-50);
+    border: 1px solid var(--brand-primary-100);
+}
+
+.category-tile,
+.product-card {
+    transition: border-color 0.15s, box-shadow 0.15s;
+
+    &:hover {
+        border-color: var(--brand-primary-300);
+        box-shadow: 0 0.25rem 0.75rem rgba(var(--brand-primary-rgb), 0.12) !important;
+    }
+
+    .card-img-top {
+        aspect-ratio: 1;
+        object-fit: cover;
+    }
+}
+
+.category-tile .card-img-top {
+    aspect-ratio: 16 / 9;
+}

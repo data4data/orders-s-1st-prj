@@ -3,7 +3,7 @@ import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
 
 export default [
-    { ignores: ['public/**', 'vendor/**', 'node_modules/**', 'var/**'] },
+    { ignores: ['public/**', 'vendor/**', 'node_modules/**', 'var/**', 'test-results/**', 'playwright-report/**'] },
     js.configs.recommended,
     ...pluginVue.configs['flat/recommended'],
     {
@@ -15,6 +15,8 @@ export default [
         rules: {
             'vue/html-indent': ['error', 4],
             'vue/singleline-html-element-content-newline': 'off',
+            // Line breaking of attributes is formatting (Prettier's job), not correctness.
+            'vue/max-attributes-per-line': 'off',
         },
     },
     // Style isolation (architecture.md §8): the Bootstrap stack must not pull in Vue, PrimeVue or Tailwind…
@@ -41,8 +43,28 @@ export default [
             }],
         },
     },
+    // Every UI text goes through translation keys (decision #38). The UI kit demo page is exempt.
     {
-        files: ['bin/**/*.mjs', '*.config.js'],
+        files: ['assets/vue/**/*.vue'],
+        ignores: ['assets/vue/pages/UiKit.vue'],
+        rules: {
+            'vue/no-bare-strings-in-template': ['error', { allowlist: ['·', '*', '&copy;', '©', '(', ')', '-', ':', '.', ','] }],
+        },
+    },
+    // assets/shared is used by both stacks, so it may depend on neither.
+    {
+        files: ['assets/shared/**/*.js'],
+        rules: {
+            'no-restricted-imports': ['error', {
+                patterns: [
+                    { group: ['**/vue/**', '**/bootstrap/**', 'vue', 'vue-*', 'primevue', 'primevue/*', 'bootstrap', 'jquery', 'lucide', 'lucide-vue-next'],
+                        message: 'assets/shared must stay framework-free (used by both frontends).' },
+                ],
+            }],
+        },
+    },
+    {
+        files: ['bin/**/*.mjs', '*.config.js', 'tests/e2e/**/*.js'],
         languageOptions: { globals: { ...globals.node } },
     },
 ];

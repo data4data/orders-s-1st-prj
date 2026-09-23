@@ -1,0 +1,10 @@
+<p>{{ 'email.password_reset.greeting'|trans({'%name%': first_name}) }}</p>
+<p>{{ ('email.order.' ~ event)|trans({'%number%': order.number, '%store%': store_name}) }}</p>
+<table cellpadding="4" style="border-collapse: collapse">
+    {% for item in order.items %}
+        <tr><td>{{ item.quantity }} × {{ item.productName }} {{ item.variantName }}</td><td align="right">{{ item.lineGross|money(order.currency) }}</td></tr>
+    {% endfor %}
+    <tr><td><strong>{{ 'email.order.total'|trans }}</strong></td><td align="right"><strong>{{ order.totals.totalGross|money(order.currency) }}</strong></td></tr>
+</table>
+<p><a href="{{ order_url }}">{{ 'email.order.view'|trans }}</a></p>
+<p>{{ store_name }}</p>

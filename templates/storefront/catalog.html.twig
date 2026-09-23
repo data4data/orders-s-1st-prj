@@ -1,0 +1,7 @@
+{% extends 'vue/base.html.twig' %}
+
+{% block title %}{{ title ?? 'catalog.title'|trans }}{% endblock %}
+
+{% block body %}
+    <div data-vue-page="Catalog" data-props="{{ props|json_encode }}"></div>
+{% endblock %}

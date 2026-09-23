@@ -1,0 +1,5 @@
+# Messages for login errors (Symfony security message keys).
+'Invalid credentials.': The email or password is not correct.
+'Too many failed login attempts, please try again in %minutes% minute.': Too many failed login attempts. Please try again in %minutes% minute.
+'Too many failed login attempts, please try again in %minutes% minutes.': Too many failed login attempts. Please try again in %minutes% minutes.
+'Invalid CSRF token.': The page was open too long. Please try again.

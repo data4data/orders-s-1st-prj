@@ -1,0 +1,57 @@
+{# Storefront header (Bootstrap). The Vue twin is assets/vue/storefront/StorefrontHeader.vue: keep both in sync. #}
+<header class="shop-header">
+    <div class="shop-topbar">
+        <div class="container d-flex justify-content-between align-items-center gap-3 py-1 small">
+            <span>
+                {% if layout.store.contactEmail is defined and layout.store.contactEmail %}{{ icon('mail') }} {{ layout.store.contactEmail }}{% endif %}
+            </span>
+            {% if layout.otherShops is not empty %}
+                <div class="dropdown">
+                    <button class="btn btn-link btn-sm text-reset text-decoration-none dropdown-toggle p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ icon('store') }} {{ 'layout.other_shops'|trans }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        {% for shop in layout.otherShops %}
+                            <li><a class="dropdown-item" href="{{ app.request.scheme }}://{{ shop.host }}/">{{ shop.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <nav class="navbar navbar-expand-lg bg-body border-bottom">
+        <div class="container gap-3">
+            <a class="navbar-brand shop-brand d-flex align-items-center gap-2" href="/">
+                {% if layout.store.logoUrl %}
+                    <img src="{{ layout.store.logoUrl }}" alt="{{ layout.store.name }}" height="32">
+                {% else %}
+                    {{ icon('brand', {class: 'shop-brand-icon'}) }}<span>{{ layout.store.name }}</span>
+                {% endif %}
+            </a>
+            {% if layout.categories is not empty %}
+                <ul class="navbar-nav">
+                    {% for category in layout.categories %}
+                        <li class="nav-item"><a class="nav-link fw-semibold" href="/c/{{ category.slug }}">{{ category.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <form class="flex-grow-1" role="search" action="/search" method="get">
+                <div class="input-group">
+                    <span class="input-group-text bg-body">{{ icon('search') }}</span>
+                    <input class="form-control" type="search" name="q" placeholder="{{ 'layout.search_placeholder'|trans }}" aria-label="{{ 'layout.search'|trans }}">
+                </div>
+            </form>
+            <div class="d-flex align-items-center gap-3 fs-5">
+                {% if layout.customerName %}
+                    <a class="text-reset text-decoration-none fs-6 fw-semibold" href="/account" aria-label="{{ 'layout.account'|trans }}">{{ icon('account') }} {{ layout.customerName }}</a>
+                {% else %}
+                    <a class="text-reset text-decoration-none fs-6 fw-semibold" href="/login">{{ icon('account') }} {{ 'layout.log_in'|trans }}</a>
+                {% endif %}
+                <a class="text-reset position-relative" href="/cart" aria-label="{{ 'layout.cart'|trans }}">
+                    {{ icon('cart') }}
+                    {% if layout.cartItemCount > 0 %}<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-accent">{{ layout.cartItemCount }}</span>{% endif %}
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>

@@ -1,0 +1,103 @@
+{% extends 'bootstrap/base.html.twig' %}
+
+{% block title %}{{ 'content.home.title'|trans }}{% endblock %}
+
+{% block body %}
+    <section class="shop-hero py-5">
+        <div class="container py-lg-4">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-7">
+                    <h1 class="display-5 fw-bold">{{ 'content.home.hero_title'|trans }}</h1>
+                    <p class="lead">{{ 'content.home.hero_text'|trans }}</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a class="btn btn-accent btn-lg" href="#oil-finder">{{ 'content.home.find_oil'|trans }} {{ icon('chevron-right') }}</a>
+                        <a class="btn btn-outline-light btn-lg" href="/contact?subject=business">{{ 'content.home.business'|trans }}</a>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <ul class="list-unstyled d-grid gap-2 mb-0 shop-hero-usps">
+                        {% for key, iconName in {approvals: 'check', delivery: 'shipping', business: 'customers', sds: 'document'} %}
+                            <li class="d-flex gap-2 align-items-center">{{ icon(iconName) }} {{ ('content.home.usp.' ~ key)|trans }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container py-5">
+        {% if page.categories is not empty %}
+            <section class="mb-5" aria-labelledby="categories-title">
+                <h2 id="categories-title" class="h3 mb-3">{{ 'content.home.categories'|trans }}</h2>
+                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-{{ min(page.categories|length, 5) }} g-3">
+                    {% for category in page.categories %}
+                        <div class="col">
+                            <a class="card h-100 text-decoration-none text-body category-tile" href="/c/{{ category.slug }}">
+                                {% if category.imageUrl %}<img class="card-img-top" src="{{ category.imageUrl }}" alt="" loading="lazy">{% endif %}
+                                <div class="card-body">
+                                    <div class="fw-semibold">{{ category.name }}</div>
+                                    <div class="small text-body-secondary">{{ 'content.home.product_count'|trans({'%count%': category.productCount}) }}</div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if page.featured is not empty %}
+            <section class="mb-5" aria-labelledby="featured-title">
+                <div class="d-flex justify-content-between align-items-baseline mb-3">
+                    <h2 id="featured-title" class="h3 mb-0">{{ 'content.home.featured'|trans }}</h2>
+                    <a href="/catalog">{{ 'content.home.all_products'|trans }}</a>
+                </div>
+                <div class="row row-cols-2 row-cols-lg-4 g-3">
+                    {% for product in page.featured %}<div class="col">{% include 'content/_product_card.html.twig' %}</div>{% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if page.finder %}
+            <section id="oil-finder" class="card border-0 bg-body-tertiary mb-5" aria-labelledby="finder-title">
+                <div class="card-body p-4 p-lg-5">
+                    <h2 id="finder-title" class="h3">{{ 'content.home.finder_title'|trans }}</h2>
+                    <p class="text-body-secondary">{{ 'content.home.finder_text'|trans({'%attribute%': page.finder.name}) }}</p>
+                    <form class="row g-2 align-items-end" action="/catalog" method="get" data-oil-finder>
+                        <div class="col-sm-6 col-lg-4">
+                            <label class="form-label" for="finder-value">{{ page.finder.name }}</label>
+                            <select class="form-select" id="finder-value" name="f[{{ page.finder.code }}]">
+                                {% for option in page.finder.options %}<option value="{{ option }}">{{ option }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-auto"><button class="btn btn-primary" type="submit">{{ 'content.home.finder_submit'|trans }}</button></div>
+                    </form>
+                </div>
+            </section>
+        {% endif %}
+
+        <section class="row g-3 mb-5">
+            {% for item in page.shipping %}
+                <div class="col-md-4">
+                    <div class="d-flex gap-2 align-items-start">
+                        <span class="fs-4 text-primary">{{ icon('shipping') }}</span>
+                        <div>
+                            <div class="fw-semibold">{{ item.name }}</div>
+                            <div class="small text-body-secondary">
+                                {% if item.freeFrom %}{{ 'content.shipping.free_from'|trans({'%amount%': item.freeFrom|money(page.currency)}) }} · {% endif %}
+                                {% if item.gross is not null %}{{ item.gross|money(page.currency) }}{% else %}{{ 'content.shipping.by_weight'|trans }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </section>
+
+        <section class="shop-b2b rounded-3 p-4 p-lg-5 d-flex flex-wrap gap-3 align-items-center justify-content-between">
+            <div>
+                <h2 class="h4 mb-1">{{ 'content.home.b2b_title'|trans }}</h2>
+                <p class="mb-0">{{ 'content.home.b2b_text'|trans }}</p>
+            </div>
+            <a class="btn btn-light" href="/contact?subject=business">{{ 'content.home.b2b_button'|trans }}</a>
+        </section>
+    </div>
+{% endblock %}

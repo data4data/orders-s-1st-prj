@@ -1,0 +1,35 @@
+{% extends 'bootstrap/base.html.twig' %}
+{% set layout = null %}
+
+{% block title %}{{ 'admin.login.title'|trans }} · MyOil's{% endblock %}
+{% block body_class %}bg-body-tertiary{% endblock %}
+
+{% block body %}
+    <div class="container py-5" style="max-width: 420px">
+        <div class="text-center mb-4">
+            <span class="fs-1 text-primary">{{ icon('brand') }}</span>
+            <h1 class="h4 mt-2">{{ 'admin.login.title'|trans }}</h1>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                {% if error %}
+                    <div class="alert alert-danger d-flex gap-2 align-items-start" role="alert">
+                        {{ icon('error') }}<div>{{ error|trans(error_data, 'security') }}</div>
+                    </div>
+                {% endif %}
+                <form method="post" data-validate novalidate>
+                    <div class="mb-3">
+                        <label class="form-label required" for="username">{{ 'admin.login.email'|trans }}</label>
+                        <input class="form-control" type="email" id="username" name="_username" value="{{ last_username }}" autocomplete="email" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required" for="password">{{ 'admin.login.password'|trans }}</label>
+                        <input class="form-control" type="password" id="password" name="_password" autocomplete="current-password" required>
+                    </div>
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                    <button class="btn btn-primary w-100" type="submit" data-busy-on-submit>{{ 'admin.login.submit'|trans }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

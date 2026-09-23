@@ -1,22 +1,17 @@
-# Icons: Lucide only (decision #54). Lucide icons are stroke-based, so no default `fill`
-# (a fill would turn the line icons into solid shapes); the SVGs carry their own stroke settings.
+# Icons: Lucide only (decision #54). Semantic names live in assets/shared/icons.json and are
+# resolved by the Twig icon() function. Lucide icons are stroke-based, so no default `fill`.
 ux_icons:
     default_icon_attributes:
         height: '1em'
         width: '1em'
+        class: 'icon'
         aria-hidden: 'true'
-    aliases:
-        success: 'lucide:circle-check'
-        info: 'lucide:info'
-        warning: 'lucide:triangle-alert'
-        error: 'lucide:circle-x'
-        close: 'lucide:x'
     ignore_not_found: false
 
 when@dev:
     ux_icons:
         iconify:
-            # Downloads an icon on first use and saves it to assets/icons/ so it is committed.
+            # Downloads a missing icon on first use and saves it to assets/icons/ (commit it).
             auto_lock: true
 
 when@prod:

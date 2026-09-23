@@ -1,0 +1,20 @@
+{# Address sub-form in a Bootstrap grid (RegistrationType → AddressType). #}
+<div class="row g-3">
+    <div class="col-md-6">{{ form_row(address.firstName) }}</div>
+    <div class="col-md-6">{{ form_row(address.lastName) }}</div>
+    <div class="col-md-8">{{ form_row(address.street) }}</div>
+    <div class="col-md-4">{{ form_row(address.houseNumber) }}</div>
+    <div class="col-md-4">{{ form_row(address.postcode) }}</div>
+    <div class="col-md-8">{{ form_row(address.city) }}</div>
+    <div class="col-md-6">{{ form_row(address.countryCode) }}</div>
+    <div class="col-md-6">{{ form_row(address.phone) }}</div>
+    <div class="col-12">
+        <details {{ address.company.vars.value or address.vatId.vars.value ? 'open' }}>
+            <summary class="small text-body-secondary mb-2">{{ 'address.business'|trans }}</summary>
+            <div class="row g-3">
+                <div class="col-md-6">{{ form_row(address.company) }}</div>
+                <div class="col-md-6">{{ form_row(address.vatId) }}</div>
+            </div>
+        </details>
+    </div>
+</div>

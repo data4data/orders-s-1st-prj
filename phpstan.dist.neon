@@ -12,3 +12,6 @@ parameters:
         containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
     doctrine:
         objectManagerLoader: tests/object-manager.php
+        # Tenant entities keep `store` null until TenantAssignListener stamps the active store
+        # on prePersist, although the store_id column is NOT NULL.
+        allowNullablePropertyForRequiredField: true
